@@ -3392,3 +3392,16 @@ ml_unsafe_kernel_text(void)
 	return false;
 }
 #endif /* DEVELOPMENT || DEBUG || CONFIG_DTRACE || CONFIG_CSR_FROM_DT */
+
+#if defined(BCM2711)
+void
+ml_enable_monitor(void)
+{
+}
+
+boolean_t
+ml_device_is_prod_fused(void)
+{
+	return TRUE;
+}
+#endif /* defined(BCM2711) */

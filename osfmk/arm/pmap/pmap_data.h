@@ -177,7 +177,9 @@ __enum_closed_decl(pvh_type_t, uint8_t, {
  * Stored in each PTE pointer (for PVH_TYPE_PVEP lists), or in the pv_head_table
  * entry/pointer for single-PTE entries (PVH_TYPE_PTEP).
  */
+#if !defined(BCM2711)
 #define PVH_FLAG_IOMMU 0x4UL
+#endif /* !defined(BCM2711) */
 
 /**
  * This flag is only valid when PVH_FLAG_IOMMU is set. For an IOMMU mapping, if
@@ -192,7 +194,9 @@ __enum_closed_decl(pvh_type_t, uint8_t, {
  * Stored in each PTE pointer (for PVH_TYPE_PVEP lists), or in the pv_head_table
  * entry/pointer for single-PTE entries (PVH_TYPE_PTEP).
  */
+#if !defined(BCM2711)
 #define PVH_FLAG_IOMMU_TABLE (1ULL << 63)
+#endif /* !defined(BCM2711) */
 
 /**
  * This flag is set when the first CPU (non-IOMMU) mapping is created. This is

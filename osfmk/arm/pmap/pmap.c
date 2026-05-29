@@ -84,8 +84,15 @@
 
 #include <arm64/proc_reg.h>
 #include <pexpert/arm64/boot.h>
+#if defined(APPLE_ARM64_ARCH_FAMILY)
 #include <arm64/ppl/sart.h>
 #include <arm64/ppl/uat.h>
+#else
+static inline void
+sart_bootstrap(void)
+{
+}
+#endif /* defined(APPLE_ARM64_ARCH_FAMILY) */
 
 #if defined(KERNEL_INTEGRITY_KTRR) || defined(KERNEL_INTEGRITY_CTRR) || defined(KERNEL_INTEGRITY_PV_CTRR)
 #include <arm64/amcc_rorgn.h>
@@ -104,6 +111,15 @@
 #include <tests/xnupost.h>
 #endif
 
+static void pmap_phys_write_disable(vm_address_t va);
+
+#if SCHED_HYGIENE_DEBUG && (DEBUG || DEVELOPMENT) && defined(BCM2711)
+bool
+pmap_pending_preemption(void)
+{
+	return _pmap_pending_preemption_real();
+}
+#endif /* SCHED_HYGIENE_DEBUG && (DEBUG || DEVELOPMENT) && defined(BCM2711) */
 
 #if HAS_MTE
 #error invalid configuration, you must be using CONFIG_SPTM
@@ -11566,7 +11582,9 @@ static_assert((_COMM_PAGE32_BASE_ADDRESS & ~ARM_TT_L2_OFFMASK) >= VM_MAX_ADDRESS
  * Ensure that 64-bit devices using 4K pages can nest the commpage completely
  * above the maximum userspace VA.
  */
+#if !XNU_TARGET_OS_OSX
 static_assert((_COMM_PAGE64_BASE_ADDRESS & ~ARM_TT_L1_OFFMASK) >= MACH_VM_MAX_ADDRESS);
+#endif /* !XNU_TARGET_OS_OSX */
 #else
 #error Nested shared page mapping is unsupported on this config
 #endif
@@ -12219,7 +12237,9 @@ pmap_cs_lockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable)
 #if XNU_MONITOR
 	pmap_ppl_lockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
 #else
-	pmap_ppl_lockdown_pages(kva, size, 0, ppl_writable);
+	(void)kva;
+	(void)size;
+	(void)ppl_writable;
 #endif
 }
 
@@ -12229,7 +12249,9 @@ pmap_cs_unlockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable)
 #if XNU_MONITOR
 	pmap_ppl_unlockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
 #else
-	pmap_ppl_unlockdown_pages(kva, size, 0, ppl_writable);
+	(void)kva;
+	(void)size;
+	(void)ppl_writable;
 #endif
 }
 

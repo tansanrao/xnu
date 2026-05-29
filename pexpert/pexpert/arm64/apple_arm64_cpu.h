@@ -33,12 +33,16 @@
 #include <stdbool.h>
 #include <sys/cdefs.h>
 
+#if defined(APPLE_ARM64_ARCH_FAMILY)
+#include <pexpert/arm64/apple_arm64_regs.h>
+#endif
+
 /**
  * Defines the core type of the executing CPU.
  */
 __enum_closed_decl(arm64_core_type_t, unsigned int, {
-	E_CORE = MPIDR_CORETYPE_ACC_E,
-	P_CORE = MPIDR_CORETYPE_ACC_P,
+	E_CORE = 0,
+	P_CORE = 1,
 });
 
 /*
@@ -49,17 +53,16 @@ __enum_closed_decl(arm64_core_type_t, unsigned int, {
 static inline arm64_core_type_t
 arm64_core_type(void)
 {
-#ifdef __arm64__
+#if defined(__arm64__) && defined(APPLE_ARM64_ARCH_FAMILY)
 	return (arm64_core_type_t)((__builtin_arm_rsr64("MPIDR_EL1") >> MPIDR_CORETYPE_SHIFT) & MPIDR_CORETYPE_MASK);
 #else
 	/**
-	 * This header file is indirectly included by the SPTM userspace testing
-	 * system which can get built and run on non-arm64 systems. In that case,
-	 * just return a hardcoded value to avoid issues with
-	 * `__builtin_arm_rsr64()` not existing.
+	 * Non-Apple ARM platforms do not encode Apple E/P core type in MPIDR_EL1.
+	 * The SPTM userspace test build can also include this header on non-arm64
+	 * hosts where `__builtin_arm_rsr64()` does not exist.
 	 */
 	return P_CORE;
-#endif /* __arm64__ */
+#endif /* defined(__arm64__) && defined(APPLE_ARM64_ARCH_FAMILY) */
 }
 
 /*

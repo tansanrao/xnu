@@ -73,7 +73,7 @@
 /* External & generated headers */
 #include <xrt_hosted_types/types.h>
 
-#if __has_include(<Tightbeam/tightbeam.h>)
+#if __has_include(<Tightbeam/tightbeam.h>) && !defined(ARM64_BOARD_CONFIG_BCM2711)
 #include <Tightbeam/tightbeam.h>
 #include <Tightbeam/tightbeam_private.h>
 #endif
@@ -3328,7 +3328,7 @@ STARTUP(TUNABLES, STARTUP_RANK_MIDDLE, exclaves_requirement_startup);
 
 #endif /* CONFIG_EXCLAVES */
 
-#if __has_include(<Tightbeam/tightbeam.h>)
+#if __has_include(<Tightbeam/tightbeam.h>) && !defined(ARM64_BOARD_CONFIG_BCM2711)
 
 #include <Tightbeam/tightbeam.h>
 
