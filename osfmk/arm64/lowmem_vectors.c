@@ -110,7 +110,7 @@ patch_low_glo_static_region(uint64_t address, uint64_t size)
 	 */
 	extern const pmap_paddr_t vm_first_phys;
 	extern const pmap_paddr_t vm_last_phys;
-	assertf((vm_first_phys != 0) && (vm_last_phys != 0),
+	assertf(vm_last_phys > vm_first_phys,
 	    "Tried setting the Low Globals before pmap_bootstrap()");
 	lowGlo.lgVmFirstPhys = vm_first_phys;
 	lowGlo.lgVmLastPhys = vm_last_phys;

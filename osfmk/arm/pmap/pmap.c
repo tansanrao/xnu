@@ -1939,7 +1939,7 @@ pmap_map_bd_with_options(
 		panic("%s: end 0x%lx is not page aligned", __func__, end);
 	}
 
-	if (__improbable(!gDramBase || !gDramSize)) {
+	if (__improbable(!gDramSize)) {
 		panic("%s: gDramBase/gDramSize not initialized", __func__);
 	}
 
