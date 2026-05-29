@@ -197,6 +197,9 @@ MARK_AS_HIBERNATE_DATA static vm_offset_t dockchannel_uart_base = 0;
 
 #ifdef PL011_UART
 static volatile pl011_registers_t *pl011_registers = NULL;
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#define BCM2711_PL011_PHYS_BASE 0xfe201000ULL
+#endif /* defined(ARM64_BOARD_CONFIG_BCM2711) */
 #endif /* PL011_UART */
 
 /*****************************************************************************/
@@ -719,11 +722,27 @@ pl011_uart_setup(const DeviceTreeNode *const devicetree_node)
 	if (SecureDTGetProperty(devicetree_node, "reg", (const void **)&reg, &reg_size) != kSuccess) {
 		panic("Unable to find the 'reg' property on the PL011 UART devicetree node");
 	}
-	assert(reg_size == sizeof(*reg));
+	if (reg_size != sizeof(*reg)) {
+		panic("PL011 UART 'reg' property has unexpected size %u", reg_size);
+	}
 
 	// Create a virtual mapping to that physical address range.
 	const vm_offset_t soc_base_phys = pe_arm_get_soc_base_phys();
-	pl011_registers = (pl011_registers_t *)ml_io_map(soc_base_phys + reg->block_offset, reg->block_size);
+	const vm_offset_t pl011_phys = soc_base_phys + reg->block_offset;
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+	if (pl011_phys != BCM2711_PL011_PHYS_BASE) {
+		panic("BCM2711 PL011 resolved to unexpected physical address 0x%llx",
+		    (unsigned long long)pl011_phys);
+	}
+	if (reg->block_size == 0) {
+		panic("BCM2711 PL011 has an empty register block");
+	}
+#endif /* defined(ARM64_BOARD_CONFIG_BCM2711) */
+	pl011_registers = (pl011_registers_t *)ml_io_map(pl011_phys, reg->block_size);
+	if (pl011_registers == NULL) {
+		panic("Unable to map PL011 UART registers at 0x%llx",
+		    (unsigned long long)pl011_phys);
+	}
 
 	// Register the PL011 UART serial driver.
 	register_serial_functions(&pl011_uart_serial_functions);
@@ -835,7 +854,9 @@ get_serial_device_phandle(uint32_t * const phandle)
 	const uint32_t *defaults_phandle;
 	unsigned int defaults_phandle_size;
 	if (SecureDTGetProperty(defaults_node, "serial-device", (const void **)&defaults_phandle, &defaults_phandle_size) == kSuccess) {
-		assert(defaults_phandle_size == sizeof(*defaults_phandle));
+		if (defaults_phandle_size != sizeof(*defaults_phandle)) {
+			panic("The 'defaults/serial-device' property has unexpected size %u", defaults_phandle_size);
+		}
 		*phandle = *defaults_phandle;
 		serial_device_phandle_specified = true;
 	}
@@ -864,7 +885,9 @@ get_serial_device_phandle(uint32_t * const phandle)
 		if (SecureDTGetProperty(serial_device_node, "AAPL,phandle", (const void **)&node_phandle, &node_phandle_size) != kSuccess) {
 			panic("The devicetree node has no phandle. This should never happen!");
 		}
-		assert(node_phandle_size == sizeof(*node_phandle));
+		if (node_phandle_size != sizeof(*node_phandle)) {
+			panic("The devicetree node phandle has unexpected size %u", node_phandle_size);
+		}
 		*phandle = *node_phandle;
 		serial_device_phandle_specified = true;
 	}
@@ -902,6 +925,9 @@ serial_init(void)
 	soc_base = pe_arm_get_soc_base_phys();
 
 	if (soc_base == 0) {
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+		panic("BCM2711 serial init could not resolve /arm-io ranges");
+#endif /* defined(ARM64_BOARD_CONFIG_BCM2711) */
 		uart_initted = true;
 		return 0;
 	}
@@ -925,6 +951,9 @@ serial_init(void)
 	unsigned int compatible_size;
 	if (SecureDTGetProperty(serial_device_node, "compatible", (const void **)&compatible, &compatible_size) != kSuccess) {
 		panic("The serial device devicetree node doesn't have a 'compatible' string");
+	}
+	if (compatible_size == 0 || compatible[compatible_size - 1] != '\0') {
+		panic("The serial device compatible string is not null-terminated");
 	}
 
 	// Call the setup function for the identified serial device driver.
