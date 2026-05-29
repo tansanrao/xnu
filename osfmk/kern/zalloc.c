@@ -167,7 +167,11 @@ ZONE_DEFINE_TYPE(percpu_u64_zone, "percpu.64", uint64_t,
 #define ZONE_MAX_CHUNK_ALLOC_NUM        (10)
 #endif /* ZSECURITY_CONFIG(SAD_FENG_SHUI) */
 
-#if   XNU_PLATFORM_MacOSX
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+/* BCM2711 uses constrained small kernel VA despite building as MacOSX. */
+#define ZONE_MAP_MAX            (1ULL << 30)
+#define ZONE_MAP_VA_SIZE        (16ULL << 30)
+#elif XNU_PLATFORM_MacOSX
 #define ZONE_MAP_MAX            (32ULL << 30)
 #define ZONE_MAP_VA_SIZE        (128ULL << 30)
 #else
