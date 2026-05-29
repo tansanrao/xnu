@@ -49,8 +49,10 @@ EXPORTS_FILES := $(foreach symbolset,$(SYMBOL_COMPONENT_LIST),$(symbolset).expor
 	$(symbolset).$(EXPORT_SOURCE_ARCH_CONFIG_LC).exports \
 	$(notdir $(wildcard $(SOURCE)/$(symbolset).$(EXPORT_SOURCE_ARCH_CONFIG_LC).$(PLATFORM).exports))) \
 	Unused.exports
+ifneq ($(CURRENT_MACHINE_CONFIG),BCM2711)
 EXPORTS_FILES += $(TIGHTBEAM_EXPORTS)
 Private_OTHER_EXPORTS += $(TIGHTBEAM_EXPORTS)
+endif
 
 
 Kasan_EXPORTS := $(SRCROOT)/config/Kasan_disabled.exports
@@ -69,8 +71,30 @@ endif
 Kasan_EXPORTS := $(SRCROOT)/config/Kasan_enabled.$(KASAN_ARCH_SUFFIX).exports
 endif
 
+ifeq ($(CURRENT_MACHINE_CONFIG),BCM2711)
+BCM2711_PRIVATE_EXPORTS := $(TARGET)/Private.BCM2711.exports
+BCM2711_PRIVATE_ARCH_EXPORTS := $(TARGET)/Private.$(EXPORT_SOURCE_ARCH_CONFIG_LC).BCM2711.exports
+Private_BASE_EXPORTS := $(BCM2711_PRIVATE_EXPORTS) \
+	$(BCM2711_PRIVATE_ARCH_EXPORTS) \
+	$(addprefix $(SOURCE)/,$(notdir $(wildcard $(SOURCE)/Private.$(EXPORT_SOURCE_ARCH_CONFIG_LC).$(PLATFORM).exports)))
+
+$(BCM2711_PRIVATE_EXPORTS): $(SOURCE)/Private.exports
+	@$(LOG_GENERATE) "$(@F)"
+	$(_v)$(MKDIR) $(@D)
+	$(_v)$(GREP) -Ev '^(_pmap_has_iofilter_protected_write|_pmap_cs_configuration)$$' $< > $@
+
+$(BCM2711_PRIVATE_ARCH_EXPORTS): $(SOURCE)/Private.$(EXPORT_SOURCE_ARCH_CONFIG_LC).exports
+	@$(LOG_GENERATE) "$(@F)"
+	$(_v)$(MKDIR) $(@D)
+	$(_v)$(GREP) -Ev '^(_pmap_iommu_|_pmap_acquire_iommu_scratch_area|_pmap_alloc_iommu_page|_pmap_free_iommu_page|_pmap_create_aligned_buffer|_pmap_destroy_aligned_buffer|_pmap_ref_iommu_table|_pmap_register_iommu_mapping|_pmap_release_iommu_scratch_area|_pmap_unregister_iommu_mapping|_nvme_ppl_get_desc|_sart_get_desc|_t[0-9]+dart_|_sptm_gen3dart_|_uat_get_desc|__ZN26IOUnifiedAddressTranslator|__ZTV26IOUnifiedAddressTranslator)' $< > $@
+endif
+
 define symbol_set_template
+ifneq "$$($(1)_BASE_EXPORTS)" ""
+$(1)_EXPORTS := $$($(1)_BASE_EXPORTS)
+else
 $(1)_EXPORTS := $$(addprefix $$(SOURCE)/,$$(filter $(1)%,$$(EXPORTS_FILES)))
+endif
 ifneq "$$($(1)_OTHER_EXPORTS)" ""
 $(1)_EXPORTS += $$($(1)_OTHER_EXPORTS)
 endif
@@ -114,6 +138,13 @@ $(foreach symbolset,$(SYMBOL_COMPONENT_LIST),$(eval $(call symbol_set_template,$
 $(foreach plist,$(KEXT_PLIST_LIST),$(eval $(call kext_plist_template,$(plist))))
 $(foreach symbolset,$(SYMBOL_SET_PLIST_COMPONENT_LIST),$(eval $(call symbol_set_plist_template,$(symbolset))))
 
+ALL_EXPORTS := $(foreach symbolset,$(SYMBOL_COMPONENT_LIST),$($(symbolset)_EXPORTS))
+$(foreach symbolset,$(SYMBOL_COMPONENT_LIST),$(eval $(symbolset)_CHECK_EXPORTS := $(SOURCE)/$(symbolset).exports $(SOURCE)/$(symbolset).$(EXPORT_SOURCE_ARCH_CONFIG_LC).exports))
+ifeq ($(CURRENT_MACHINE_CONFIG),BCM2711)
+Private_CHECK_EXPORTS := $(BCM2711_PRIVATE_EXPORTS) $(BCM2711_PRIVATE_ARCH_EXPORTS)
+endif
+ALL_CHECK_EXPORTS := $(foreach symbolset,$(SYMBOL_COMPONENT_LIST),$($(symbolset)_CHECK_EXPORTS))
+
 $(OBJPATH)/symbolsets.plist: $(SYMBOL_SET_PLIST_BUILD)
 	$(_v)$(SOURCE)/generate_combined_symbolsets_plist.sh $@ $^ $(_vstdout)
 	$(_v)$(PLUTIL) -convert binary1 -s $@
@@ -123,20 +154,18 @@ build_symbol_set_plists: $(KEXT_PLIST_BUILD) $(OBJPATH)/symbolsets.plist
 $(TARGET)/allsymbols: $(OBJPATH)/$(KERNEL_FILE_NAME)
 	$(_v)$(NM) -gj $< | sort -u > $@
 
-check_all_exports: $(TARGET)/allsymbols $(KEXT_CREATE_SYMBOL_SET)
+check_all_exports: $(TARGET)/allsymbols $(KEXT_CREATE_SYMBOL_SET) $(ALL_CHECK_EXPORTS)
 	$(_v)$(KEXT_CREATE_SYMBOL_SET)					\
 		$(ARCH_FLAGS_$(CURRENT_ARCH_CONFIG))			\
 		-import $(TARGET)/allsymbols				\
 		$(foreach symbolset,$(filter-out Private,$(SYMBOL_COMPONENT_LIST)),	\
-			-export $(SOURCE)/$(symbolset).exports		\
-			-export $(SOURCE)/$(symbolset).$(EXPORT_SOURCE_ARCH_CONFIG_LC).exports)	\
+			$(foreach file,$($(symbolset)_CHECK_EXPORTS),-export $(file)))	\
 		-output /dev/null $(_vstdout)
 	$(_v)$(KEXT_CREATE_SYMBOL_SET)					\
 		$(ARCH_FLAGS_$(CURRENT_ARCH_CONFIG))			\
 		-import $(TARGET)/allsymbols				\
 		$(foreach symbolset,$(filter-out Unsupported,$(SYMBOL_COMPONENT_LIST)),	\
-			-export $(SOURCE)/$(symbolset).exports		\
-			-export $(SOURCE)/$(symbolset).$(EXPORT_SOURCE_ARCH_CONFIG_LC).exports)	\
+			$(foreach file,$($(symbolset)_CHECK_EXPORTS),-export $(file)))	\
 		-output /dev/null $(_vstdout)
 
 $(OBJPATH)/$(MD_SUPPORTED_KPI_FILENAME): $(EXPORTS_FILES)
@@ -210,11 +239,11 @@ else
 # We are building XNU as a static library - avoid creating symbol sets
 endif
 
-$(OBJPATH)/all-kpi.exp: $(EXPORTS_FILES)
-	$(_v)$(SOURCE)/generate_linker_exports.sh $@ $+ $(Kasan_EXPORTS) $(Kcov_EXPORTS)
+$(OBJPATH)/all-kpi.exp: $(ALL_EXPORTS) $(Kasan_EXPORTS) $(Kcov_EXPORTS)
+	$(_v)$(SOURCE)/generate_linker_exports.sh $@ $+
 
-$(OBJPATH)/all-alias.exp: $(EXPORTS_FILES)
-	$(_v)$(SOURCE)/generate_linker_aliases.sh $@ $+ $(Kasan_EXPORTS) $(Kcov_EXPORTS)
+$(OBJPATH)/all-alias.exp: $(ALL_EXPORTS) $(Kasan_EXPORTS) $(Kcov_EXPORTS)
+	$(_v)$(SOURCE)/generate_linker_aliases.sh $@ $+
 
 do_build_all:: $(OBJPATH)/all-kpi.exp $(OBJPATH)/all-alias.exp
 
