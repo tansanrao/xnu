@@ -29,7 +29,7 @@ SUPPORTED_ARM64_MACHINE_CONFIGS = NONE
 else ifneq ($(findstring _host,$(RC_ProjectName)),)
 SUPPORTED_ARM64_MACHINE_CONFIGS = NONE
 else
-SUPPORTED_ARM64_MACHINE_CONFIGS = T6000 T6020 T6030 T6031 T6041 T8101 T8103 T8112 T8122 T8132 T8142 VMAPPLE
+SUPPORTED_ARM64_MACHINE_CONFIGS = T6000 T6020 T6030 T6031 T6041 T8101 T8103 T8112 T8122 T8132 T8142 VMAPPLE BCM2711
 
 SPTM_ENABLED_SOCS_MacOSX = t6000 t8112 t6020 t8122 t6030 t6031 t8132 t6041 t8142
 EXCLAVES_ENABLED_SOCS_MacOSX = t8142
@@ -55,8 +55,13 @@ endif
 
 ARM64_EXTRA_BUILD_FLAGS =
 
-# Enable BTI by default for all ARM64 targets
+# Enable BTI by default for all ARM64 targets. BCM2711's Cortex-A72 cores do
+# not implement BTI, so keep that target on ordinary arm64 code generation.
+ifeq ($(CURRENT_MACHINE_CONFIG),BCM2711)
+BTI_BUILD = 0
+else
 BTI_BUILD = 1
+endif
 
 
 # -mkernel contains BTI by default
@@ -92,6 +97,7 @@ MACHINE_FLAGS_ARM64_T8132 = -DARM64_BOARD_CONFIG_T8132			-mcpu=apple-m4 -D__ARM_
 MACHINE_FLAGS_ARM64_T8142 = -DARM64_BOARD_CONFIG_T8142 			-mcpu=apple-m4+memtag+predres2 -D__ARM_ARCH_8_2__=1
 
 MACHINE_FLAGS_ARM64_VMAPPLE = -DARM64_BOARD_CONFIG_VMAPPLE              -march=armv8.5a+sme2 -D__ARM_ARCH_8_2__=1
+MACHINE_FLAGS_ARM64_BCM2711 = -DARM64_BOARD_CONFIG_BCM2711              -mcpu=cortex-a72
 
 
 #
@@ -350,6 +356,10 @@ ARCH_FLAGS_ARM64          = -arch arm64e
 else
 
 ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG ?=
+
+ifeq ($(CURRENT_MACHINE_CONFIG),BCM2711)
+export ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG := arm64
+endif
 
 ifeq ($(ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG),)
 
@@ -1149,8 +1159,9 @@ LDFILES_KERNEL_ONLY = $(TARGET)/all-kpi.exp $(TARGET)/all-alias.exp $(TARGET)/sy
 LD_KERNEL_LIBS	   = -lcc_kext
 LD_KERNEL_ARCHIVES = $(LDFLAGS_KERNEL_SDK) -lfirehose_kernel
 
-# Link binary support library
-ifneq ($(CURRENT_MACHINE_CONFIG),NONE)
+# Link binary support library. BCM2711 is a local non-Apple board target, so
+# there is no matching KernelSupport archive in the KDK.
+ifneq ($(filter-out NONE BCM2711,$(CURRENT_MACHINE_CONFIG)),)
         LDFLAGS_KERNEL_ONLY += -rdynamic -Wl,-force_load,$(KDKROOT)/System/Library/KernelSupport/lib$(CURRENT_MACHINE_CONFIG).os.$(CURRENT_KERNEL_CONFIG).a
 endif
 
@@ -1189,21 +1200,23 @@ ifeq ($(EXCLAVES_ENABLED),1)
 endif # !EXCLAVES_ENABLED
 
 
-ifneq ($(wildcard $(SDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a),)
-XNU_CONFIG_TIGHTBEAM := 1
-TIGHTBEAM_IN_SDK := 1
-else ifneq ($(wildcard $(KDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a),)
-XNU_CONFIG_TIGHTBEAM := 1
-endif
-ifeq ($(XNU_CONFIG_TIGHTBEAM),1)
-  ifeq ($(TIGHTBEAM_IN_SDK),1)
-    # Force-import the Tightbeam static lib so that all of its symbols can be exported to kexts
-    LD_KERNEL_ARCHIVES += -Wl,-force_load,$(SDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a
-    TIGHTBEAM_EXPORTS := $(SDKROOT)/usr/local/lib/kernel/platform/libTightbeam.exports
-  else # !TIGHTBEAM_IN_SDK
-    LD_KERNEL_ARCHIVES += -Wl,-force_load,$(KDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a
-    TIGHTBEAM_EXPORTS := $(KDKROOT)/usr/local/lib/kernel/platform/libTightbeam.exports
-  endif # TIGHTBEAM_IN_SDK
+ifneq ($(CURRENT_MACHINE_CONFIG),BCM2711)
+  ifneq ($(wildcard $(SDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a),)
+  XNU_CONFIG_TIGHTBEAM := 1
+  TIGHTBEAM_IN_SDK := 1
+  else ifneq ($(wildcard $(KDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a),)
+  XNU_CONFIG_TIGHTBEAM := 1
+  endif
+  ifeq ($(XNU_CONFIG_TIGHTBEAM),1)
+    ifeq ($(TIGHTBEAM_IN_SDK),1)
+      # Force-import the Tightbeam static lib so that all of its symbols can be exported to kexts
+      LD_KERNEL_ARCHIVES += -Wl,-force_load,$(SDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a
+      TIGHTBEAM_EXPORTS := $(SDKROOT)/usr/local/lib/kernel/platform/libTightbeam.exports
+    else # !TIGHTBEAM_IN_SDK
+      LD_KERNEL_ARCHIVES += -Wl,-force_load,$(KDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a
+      TIGHTBEAM_EXPORTS := $(KDKROOT)/usr/local/lib/kernel/platform/libTightbeam.exports
+    endif # TIGHTBEAM_IN_SDK
+  endif
 endif
 
 #

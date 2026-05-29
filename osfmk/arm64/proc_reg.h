@@ -251,6 +251,14 @@
 /* D-Cache. */
 #define MMU_CLINE   6
 
+#elif defined (BCM2711)
+
+/* Cortex-A72 L1 I-cache line size. */
+#define MMU_I_CLINE 6
+
+/* Cortex-A72 L1 D-cache line size. */
+#define MMU_CLINE   6
+
 #else
 #error processor not supported
 #endif
