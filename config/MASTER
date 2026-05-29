@@ -328,6 +328,8 @@ options		CONFIG_EXCLAVES			# <config_exclaves>
 # Compile XNU with PPL support.
 options   CONFIG_PMAP_PPL			# <config_pmap_ppl>
 
+options   CONFIG_AMCC_RORGN			# <config_amcc_rorgn>
+
 options   NOS_ARM_ASM			# <nos_arm_asm>
 options   NOS_ARM_PMAP			# <nos_arm_pmap>
 
