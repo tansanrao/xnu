@@ -455,6 +455,14 @@ ARM64_PLKSEG_ADDR  = 0xfffffe0004004000
 ARM64_LINK_ADDR    = 0xfffffe0007004000
 endif
 
+ifeq ($(CURRENT_MACHINE_CONFIG),BCM2711)
+# BCM2711 is a constrained 4K-page target. Keep its kernel link address inside
+# the 39-bit TTBR1 range selected by T1SZ_BOOT=25.
+ARM64_LARGE_MEMORY = 0
+ARM64_PLKSEG_ADDR  = 0xfffffff004004000
+ARM64_LINK_ADDR    = 0xfffffff007004000
+endif
+
 
 ifeq ($(ARM64_LARGE_MEMORY),1)
 	ARM64_EXTRA_BUILD_FLAGS += -DARM_LARGE_MEMORY=1
