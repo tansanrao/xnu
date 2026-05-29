@@ -56,7 +56,12 @@
 #  IOKIT_RELEASE =  [ IOKIT_BASE ]
 #  IOKIT_DEV =      [ IOKIT_BASE iotracking ]
 #  IOKIT_DEBUG =    [ IOKIT_BASE iotracking ]
-#  LIBKERN_BASE =   [ libkerncpp config_blocks config_kec_fips crypto_sha2 config_img4 ]
+#if SOC_CONFIG_bcm2711
+#  FIREHOSE_BASE =  [ config_bcm2711_firehose_stub ]
+#else
+#  FIREHOSE_BASE =  [ ]
+#endif /*SOC_CONFIG_bcm2711*/
+#  LIBKERN_BASE =   [ libkerncpp config_blocks config_kec_fips crypto_sha2 config_img4 FIREHOSE_BASE ]
 #  LIBKERN_RELEASE =[ LIBKERN_BASE zlib ]
 #  LIBKERN_DEV =    [ LIBKERN_BASE zlib iotracking ]
 #  LIBKERN_DEBUG =  [ LIBKERN_BASE zlib iotracking ]
@@ -139,3 +144,4 @@ options CONFIG_MACF_LAZY_VNODE_LABELS   # Turn on labels, don't preallocate
 options   CONFIG_RESLIDE_SHARED_CACHE		# <reslide_shared_cache>
 options   CONFIG_KERNEL_TBI		# <kernel_tbi>
 options   CONFIG_KERNEL_TAGGING		# <kernel_tagging>
+options   CONFIG_BCM2711_FIREHOSE_STUB		# <config_bcm2711_firehose_stub>

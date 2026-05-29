@@ -57,6 +57,7 @@ libkern/stdio/scanf.c					standard
 libkern/uuid/uuid.c					standard
 
 libkern/os/log.c					standard
+libkern/os/firehose_bcm2711_stub.c			optional config_bcm2711_firehose_stub
 libkern/os/log_encode.c					standard
 libkern/os/log_mem.c					standard
 libkern/os/log_queue.c					standard

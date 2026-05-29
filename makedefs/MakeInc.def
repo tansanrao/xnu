@@ -1165,7 +1165,10 @@ LDFILES_KERNEL_ONLY = $(TARGET)/all-kpi.exp $(TARGET)/all-alias.exp $(TARGET)/sy
 # Default runtime libraries to be linked with the kernel
 #
 LD_KERNEL_LIBS	   = -lcc_kext
-LD_KERNEL_ARCHIVES = $(LDFLAGS_KERNEL_SDK) -lfirehose_kernel
+LD_KERNEL_ARCHIVES = $(LDFLAGS_KERNEL_SDK)
+ifneq ($(CURRENT_MACHINE_CONFIG),BCM2711)
+  LD_KERNEL_ARCHIVES += -lfirehose_kernel
+endif
 
 # Link binary support library. BCM2711 is a local non-Apple board target, so
 # there is no matching KernelSupport archive in the KDK.
