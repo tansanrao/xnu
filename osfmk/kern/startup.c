@@ -196,6 +196,9 @@ extern void sdt_early_init(void);
 extern void OSKextRemoveKextBootstrap(void);
 
 void scale_setup(void);
+#if RPI4_UP_ONLY
+extern void rpi4_boot_diagnostics(void);
+#endif /* RPI4_UP_ONLY */
 extern void bsd_scale_setup(int);
 extern unsigned int semaphore_max;
 extern void stackshot_init(void);
@@ -536,6 +539,10 @@ kernel_bootstrap(void)
 
 	kernel_bootstrap_log("vm_mem_bootstrap");
 	vm_mem_bootstrap();
+
+#if RPI4_UP_ONLY
+	rpi4_boot_diagnostics();
+#endif /* RPI4_UP_ONLY */
 
 	machine_info.memory_size = (uint32_t)mem_size;
 #if XNU_TARGET_OS_OSX

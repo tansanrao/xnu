@@ -65,6 +65,9 @@ static uint64_t wake_conttime = UINT64_MAX;
 
 extern volatile uint32_t debug_enabled;
 extern _Atomic unsigned int cluster_type_num_active_cpus[MAX_CPU_TYPES];
+#if RPI4_UP_ONLY
+void rpi4_boot_diagnostics(void);
+#endif /* RPI4_UP_ONLY */
 const char *cluster_type_names[MAX_CPU_TYPES] = {
 	[CLUSTER_TYPE_SMP] = "Standard",
 	[CLUSTER_TYPE_E] = "Efficiency",
@@ -1530,6 +1533,20 @@ machine_conf(void)
 	machine_info.physical_cpu_max = num_cpus;
 	machine_info.logical_cpu_max = num_cpus;
 }
+
+#if RPI4_UP_ONLY
+void
+rpi4_boot_diagnostics(void)
+{
+	const cache_info_t *rpi4_cache = cache_info();
+	const ml_topology_info_t *rpi4_topology = ml_get_topology_info();
+
+	printf("RPI4: CACHE LINE=%u COHERENT_CPU=1 COHERENT_IO=0\n",
+	    rpi4_cache->c_linesz);
+	printf("RPI4: UP TOPOLOGY CPU=%u MPIDR=0x%06x\n",
+	    rpi4_topology->boot_cpu->cpu_id, rpi4_topology->boot_cpu->phys_id);
+}
+#endif /* RPI4_UP_ONLY */
 
 void
 machine_init(void)

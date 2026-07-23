@@ -27,6 +27,21 @@
 #ifndef ASSEMBLER
 #define PL011_UART
 #define PLATFORM_PANIC_LOG_DISABLED
+
+/*
+ * The 39-bit TTBR1 layout leaves substantially less allocatable kernel VA
+ * than a large-memory macOS target.  Use the existing constrained-platform
+ * zone sizing while retaining the macOS userspace ABI.
+ */
+#define CONFIG_ZONE_MAP_MAX                    (8ULL << 30)
+#define CONFIG_ZONE_MAP_VA_SIZE                (24ULL << 30)
+
+/*
+ * SMP is deliberately deferred until interrupt delivery is stable.  Keep the
+ * hardware maximum at four CPUs, but fail explicitly if a secondary start is
+ * attempted during the uniprocessor bring-up.
+ */
+#define RPI4_UP_ONLY                           1
 #endif /* !ASSEMBLER */
 
 #endif /* _PEXPERT_ARM64_RPI4_H */

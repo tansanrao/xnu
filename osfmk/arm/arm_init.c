@@ -62,6 +62,8 @@
 #include <arm/caches_internal.h>
 #include <arm/cpu_internal.h>
 #include <arm/cpu_data_internal.h>
+#include <arm/cpu_topology.h>
+#include <arm/cpuid.h>
 #include <arm/cpuid_internal.h>
 #include <arm/misc_protos.h>
 #include <arm/machine_cpu.h>
@@ -634,6 +636,27 @@ arm_init(
 
 	/* setup console output */
 	PE_init_printf(FALSE);
+
+#if RPI4_UP_ONLY
+	const cache_info_t *rpi4_cache = cache_info();
+	const ml_topology_info_t *rpi4_topology = ml_get_topology_info();
+	const uint32_t rpi4_mpidr = (uint32_t)(__builtin_arm_rsr64("MPIDR_EL1") &
+	    (MPIDR_AFF2_MASK | MPIDR_AFF1_MASK | MPIDR_AFF0_MASK));
+	if (rpi4_cache == NULL || rpi4_cache->c_linesz != 64) {
+		panic("RPI4: invalid cache line size %u",
+		    rpi4_cache == NULL ? 0 : rpi4_cache->c_linesz);
+	}
+	if (rpi4_topology == NULL || rpi4_topology->num_cpus != 1 ||
+	    rpi4_topology->num_clusters != 1 || rpi4_topology->boot_cpu == NULL ||
+	    rpi4_topology->boot_cpu->cpu_id != 0 ||
+	    rpi4_topology->boot_cpu->phys_id != rpi4_mpidr) {
+		panic("RPI4: invalid UP topology (cpus %u clusters %u boot %p mpidr 0x%x)",
+		    rpi4_topology == NULL ? 0 : rpi4_topology->num_cpus,
+		    rpi4_topology == NULL ? 0 : rpi4_topology->num_clusters,
+		    rpi4_topology == NULL ? NULL : rpi4_topology->boot_cpu,
+		    rpi4_mpidr);
+	}
+#endif /* RPI4_UP_ONLY */
 
 #if __arm64__
 #if DEBUG

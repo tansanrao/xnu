@@ -897,6 +897,12 @@ init_ctrr_cluster_states(void)
 void
 cpu_start(int cpu)
 {
+#if RPI4_UP_ONLY
+	if (cpu != cpu_number()) {
+		panic("RPI4: secondary CPU start is disabled during UP bring-up (cpu %d)", cpu);
+	}
+#endif /* RPI4_UP_ONLY */
+
 	cpu_data_t *cpu_data_ptr = CpuDataEntries[cpu].cpu_data_vaddr;
 	processor_t processor = PERCPU_GET_RELATIVE(processor, cpu_data, cpu_data_ptr);
 

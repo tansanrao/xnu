@@ -502,7 +502,11 @@ sched_init(void)
 
 #if !SCHED_TEST_HARNESS
 	boolean_t direct_handoff = FALSE;
+#if RPI4_UP_ONLY
+	printf("Scheduler: Default of %s\n", SCHED(sched_name));
+#else
 	kprintf("Scheduler: Default of %s\n", SCHED(sched_name));
+#endif /* RPI4_UP_ONLY */
 
 	if (!PE_parse_boot_argn("sched_pri_decay_limit", &sched_pri_decay_band_limit, sizeof(sched_pri_decay_band_limit))) {
 		/* No boot-args, check in device tree */

@@ -167,13 +167,25 @@ ZONE_DEFINE_TYPE(percpu_u64_zone, "percpu.64", uint64_t,
 #define ZONE_MAX_CHUNK_ALLOC_NUM        (10)
 #endif /* ZSECURITY_CONFIG(SAD_FENG_SHUI) */
 
-#if   XNU_PLATFORM_MacOSX
+#if defined(CONFIG_ZONE_MAP_MAX) != defined(CONFIG_ZONE_MAP_VA_SIZE)
+#error CONFIG_ZONE_MAP_MAX and CONFIG_ZONE_MAP_VA_SIZE must be defined together
+#elif defined(CONFIG_ZONE_MAP_MAX)
+#define ZONE_MAP_MAX            CONFIG_ZONE_MAP_MAX
+#define ZONE_MAP_VA_SIZE        CONFIG_ZONE_MAP_VA_SIZE
+#elif XNU_PLATFORM_MacOSX
 #define ZONE_MAP_MAX            (32ULL << 30)
 #define ZONE_MAP_VA_SIZE        (128ULL << 30)
 #else
 #define ZONE_MAP_MAX            (8ULL << 30)
 #define ZONE_MAP_VA_SIZE        (24ULL << 30)
 #endif
+
+static_assert((ZONE_MAP_MAX & 0xfff) == 0,
+    "zone map maximum must be 4K aligned");
+static_assert((ZONE_MAP_VA_SIZE & 0xfff) == 0,
+    "zone map VA reservation must be 4K aligned");
+static_assert(ZONE_MAP_MAX <= ZONE_MAP_VA_SIZE,
+    "zone map maximum must fit in its VA reservation");
 
 __enum_closed_decl(zm_len_t, uint16_t, {
 	ZM_CHUNK_FREE           = 0x0,
