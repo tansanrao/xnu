@@ -2,6 +2,7 @@ OPTIONS/config_ecc_logging	optional config_ecc_logging
 OPTIONS/fb			optional fb
 
 OPTIONS/debug			optional debug
+OPTIONS/config_nonapple_arm64	optional config_nonapple_arm64
 
 osfmk/vm/vm_apple_protect.c	 standard
 
@@ -35,10 +36,10 @@ osfmk/arm64/WKdmCompress_4k.s	standard
 osfmk/arm64/WKdmData.s		standard
 osfmk/arm64/lz4_decode_arm64.s  standard
 osfmk/arm64/lz4_encode_arm64.s  standard
-osfmk/arm64/amcc_rorgn_ppl.c optional nos_arm_asm config_pmap_ppl
-osfmk/arm64/amcc_rorgn_ppl_amcc.c optional nos_arm_asm config_pmap_ppl
-osfmk/arm64/amcc_rorgn_common.c optional nos_arm_asm
-osfmk/arm64/amcc_rorgn_pv_ctrr.c optional nos_arm_asm
+osfmk/arm64/amcc_rorgn_ppl.c optional nos_arm_asm config_pmap_ppl not config_nonapple_arm64
+osfmk/arm64/amcc_rorgn_ppl_amcc.c optional nos_arm_asm config_pmap_ppl not config_nonapple_arm64
+osfmk/arm64/amcc_rorgn_common.c optional nos_arm_asm not config_nonapple_arm64
+osfmk/arm64/amcc_rorgn_pv_ctrr.c optional nos_arm_asm not config_nonapple_arm64
 osfmk/arm64/bcopy.s standard
 osfmk/arm64/bzero.s standard
 osfmk/arm/caches.c		standard
@@ -67,6 +68,7 @@ osfmk/arm64/pinst.s	optional nos_arm_asm
 osfmk/arm64/cswitch.s	optional nos_arm_asm
 osfmk/arm/machine_cpuid.c	standard
 osfmk/arm/machine_routines_common.c		standard
+osfmk/arm/machine_routines_nonapple.c	optional config_nonapple_arm64
 osfmk/arm64/lock_ticket_pv.c		optional config_pv_ticket
 osfmk/arm64/machine_routines.c		standard
 osfmk/arm64/machine_routines_asm.s	optional nos_arm_asm

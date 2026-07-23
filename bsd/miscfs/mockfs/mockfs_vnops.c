@@ -334,7 +334,11 @@ mockfs_pagein(struct vnop_pagein_args * ap)
 		panic("mockfs_pagein called for a memory-backed device");
 	}
 
-	return cluster_pagein(ap->a_vp, ap->a_pl, ap->a_pl_offset, ap->a_f_offset, ap->a_size, fsnode->size, ap->a_flags);
+	if (ap->a_size > INT_MAX) {
+		return EINVAL;
+	}
+	return cluster_pagein(ap->a_vp, ap->a_pl, ap->a_pl_offset, ap->a_f_offset,
+	           (int)ap->a_size, fsnode->size, ap->a_flags);
 }
 
 /*
@@ -408,7 +412,7 @@ mockfs_blockmap(struct vnop_blockmap_args * ap)
 
 int(**mockfs_vnodeop_p)(void *);
 const struct vnodeopv_entry_desc mockfs_vnodeop_entries[] = {
-	{ .opve_op = &vnop_default_desc, .opve_impl = (VOPFUNC) vn_default_error }, /* default */
+	{ .opve_op = &vnop_default_desc, .opve_impl = (VOPFUNC)(void (*)(void))vn_default_error }, /* default */
 	{ .opve_op = &vnop_lookup_desc, .opve_impl = (VOPFUNC) mockfs_lookup }, /* lookup */
 	{ .opve_op = &vnop_create_desc, .opve_impl = (VOPFUNC) err_create },/* create */
 	{ .opve_op = &vnop_open_desc, .opve_impl = (VOPFUNC) err_open }, /* open */

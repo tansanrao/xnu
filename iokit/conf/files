@@ -7,6 +7,7 @@ OPTIONS/hibernation					optional hibernation
 OPTIONS/crypto						optional crypto
 OPTIONS/config_dtrace				optional config_dtrace
 OPTIONS/mach_assert				optional mach_assert
+OPTIONS/no_apple_arm_drivers			optional no_apple_arm_drivers
 
 # iig generated implementation files
 

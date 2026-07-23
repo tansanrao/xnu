@@ -177,7 +177,9 @@ __enum_closed_decl(pvh_type_t, uint8_t, {
  * Stored in each PTE pointer (for PVH_TYPE_PVEP lists), or in the pv_head_table
  * entry/pointer for single-PTE entries (PVH_TYPE_PTEP).
  */
+#if !CONFIG_NONAPPLE_ARM64
 #define PVH_FLAG_IOMMU 0x4UL
+#endif
 
 /**
  * This flag is only valid when PVH_FLAG_IOMMU is set. For an IOMMU mapping, if
@@ -2079,6 +2081,7 @@ extern void pmap_cpu_data_init_internal(unsigned int);
  * @param paddr The base physical address of the page to flush.
  */
 extern void pmap_flush_noncoherent_page(pmap_paddr_t paddr);
+extern void pmap_mark_page_for_cache_flush(pmap_paddr_t pa);
 
 #if DEBUG || DEVELOPMENT
 extern unsigned int pmap_wcrt_on_non_dram_count_get(void);

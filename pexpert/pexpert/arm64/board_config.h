@@ -318,6 +318,16 @@
 
 #endif  /* ARM64_BOARD_CONFIG_VMAPPLE */
 
+#ifdef ARM64_BOARD_CONFIG_RPI4
+#include <pexpert/arm64/RPI4.h>
+
+#define MAX_L2_CLINE                   6
+#define MAX_CPUS                       4
+#define MAX_CPU_CLUSTERS               1
+
+#define NO_XNU_PLATFORM_ERROR_HANDLER  1
+#endif  /* ARM64_BOARD_CONFIG_RPI4 */
+
 
 
 #ifndef HAS_UNCORE_CTRS

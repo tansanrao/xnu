@@ -1209,10 +1209,13 @@ kdp_connection_wait(void)
 	 * the panic.log
 	 */
 
+#if CONFIG_SERIAL_KDP
 	if (KDP_SERIAL_ENABLED()) {
 		printf("Using serial KDP.\n");
 		kprintf("Using serial KDP.\n");
-	} else {
+	} else
+#endif /* CONFIG_SERIAL_KDP */
+	{
 		printf("ethernet MAC address: %02x:%02x:%02x:%02x:%02x:%02x\n",
 		    kdp_mac_addr.ether_addr_octet[0] & 0xff,
 		    kdp_mac_addr.ether_addr_octet[1] & 0xff,

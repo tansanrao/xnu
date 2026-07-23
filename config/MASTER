@@ -330,6 +330,8 @@ options   CONFIG_PMAP_PPL			# <config_pmap_ppl>
 
 options   NOS_ARM_ASM			# <nos_arm_asm>
 options   NOS_ARM_PMAP			# <nos_arm_pmap>
+options   CONFIG_NONAPPLE_ARM64		# <config_nonapple_arm64>
+options   NO_APPLE_ARM_DRIVERS		# <no_apple_arm_drivers>
 
 # support dynamic signing of code
 #

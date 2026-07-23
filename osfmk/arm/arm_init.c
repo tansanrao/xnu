@@ -425,6 +425,11 @@ arm_init(
 		/*
 		 * Select the advertised kernel page size.
 		 */
+#if ARM_VM_PAGE_SIZE_FIXED_TO_HW
+		static_assert(ARM_PGSHIFT == 12);
+		PAGE_SHIFT_CONST = ARM_PGSHIFT;
+		page_shift_user32 = ARM_PGSHIFT;
+#else
 		if (args->memSize > 1ULL * 1024 * 1024 * 1024) {
 			/*
 			 * arm64 device with > 1GB of RAM:
@@ -442,6 +447,7 @@ arm_init(
 
 		/* 32-bit apps always see 16KB page size */
 		page_shift_user32 = PAGE_MAX_SHIFT;
+#endif /* ARM_VM_PAGE_SIZE_FIXED_TO_HW */
 #ifdef  APPLETYPHOON
 		if (PE_parse_boot_argn("cpus_defeatures", &cpus_defeatures, sizeof(cpus_defeatures))) {
 			if ((cpus_defeatures & 0xF) != 0) {

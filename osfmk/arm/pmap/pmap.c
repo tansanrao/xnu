@@ -84,8 +84,10 @@
 
 #include <arm64/proc_reg.h>
 #include <pexpert/arm64/boot.h>
+#if !CONFIG_NONAPPLE_ARM64
 #include <arm64/ppl/sart.h>
 #include <arm64/ppl/uat.h>
+#endif
 
 #if defined(KERNEL_INTEGRITY_KTRR) || defined(KERNEL_INTEGRITY_CTRR) || defined(KERNEL_INTEGRITY_PV_CTRR)
 #include <arm64/amcc_rorgn.h>
@@ -133,6 +135,7 @@ static void free_asid(pmap_t pmap);
 static void flush_mmu_tlb_region_asid_async(vm_offset_t va, size_t length, pmap_t pmap, bool last_level_only, bool strong);
 static void flush_mmu_tlb_full_asid_async(pmap_t pmap);
 static pt_entry_t wimg_to_pte(unsigned int wimg, pmap_paddr_t pa);
+static void pmap_phys_write_disable(vm_address_t va);
 
 const struct page_table_ops native_pt_ops =
 {
@@ -2334,7 +2337,9 @@ pmap_bootstrap(
 	/**
 	 * Bootstrap any necessary SART data structures and values needed from the device tree.
 	 */
+#if !CONFIG_NONAPPLE_ARM64
 	sart_bootstrap();
+#endif
 
 	/**
 	 * Don't make any assumptions about the alignment of avail_start before this
@@ -12237,23 +12242,23 @@ pmap_unpin_kernel_pages(vm_offset_t kva __unused, size_t nbytes __unused)
 #endif /* !XNU_MONITOR */
 
 
-MARK_AS_PMAP_TEXT static inline void
+MARK_AS_PMAP_TEXT static inline __attribute__((unused)) void
 pmap_cs_lockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable)
 {
 #if XNU_MONITOR
 	pmap_ppl_lockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
 #else
-	pmap_ppl_lockdown_pages(kva, size, 0, ppl_writable);
+#pragma unused(kva, size, ppl_writable)
 #endif
 }
 
-MARK_AS_PMAP_TEXT static inline void
+MARK_AS_PMAP_TEXT static inline __attribute__((unused)) void
 pmap_cs_unlockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable)
 {
 #if XNU_MONITOR
 	pmap_ppl_unlockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
 #else
-	pmap_ppl_unlockdown_pages(kva, size, 0, ppl_writable);
+#pragma unused(kva, size, ppl_writable)
 #endif
 }
 

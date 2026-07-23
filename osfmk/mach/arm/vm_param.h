@@ -133,7 +133,14 @@ extern int PAGE_SHIFT_CONST;
 
 /* system-wide values */
 #define MACH_VM_MIN_ADDRESS_RAW 0x0ULL
-#if defined(XNU_PLATFORM_MacOSX) || defined(XNU_PLATFORM_DriverKit)
+#if defined(RPI4)
+/*
+ * The classic 4 KiB ARM pmap reserves the 0x0fc0000000..0x0fffffffff
+ * region for its nested commpage tables. Keep the RPI4 user VA ceiling
+ * below that reservation even though this target uses the macOS config.
+ */
+#define MACH_VM_MAX_ADDRESS_RAW 0x0000000FC0000000ULL
+#elif defined(XNU_PLATFORM_MacOSX) || defined(XNU_PLATFORM_DriverKit)
 #define MACH_VM_MAX_ADDRESS_RAW 0x00007FFFFE000000ULL
 #else
 #define MACH_VM_MAX_ADDRESS_RAW 0x0000000FC0000000ULL

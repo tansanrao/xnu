@@ -36,11 +36,24 @@
 /**
  * Defines the core type of the executing CPU.
  */
+#if defined(RPI4)
+/*
+ * This API is included by common ARM64 code. Cortex-A72 has no Apple
+ * E/M/P-core encoding in MPIDR_EL1, so model its homogeneous cores as one
+ * generic performance class without reading Apple-defined affinity bits.
+ */
+__enum_closed_decl(arm64_core_type_t, unsigned int, {
+	E_CORE = 0,
+	M_CORE = 1,
+	P_CORE = 2,
+});
+#else
 __enum_closed_decl(arm64_core_type_t, unsigned int, {
 	E_CORE = MPIDR_CORETYPE_ACC_E,
 	M_CORE = MPIDR_CORETYPE_ACC_M,
 	P_CORE = MPIDR_CORETYPE_ACC_P,
 });
+#endif
 
 /*
  * Get the core type of the executing CPU.
@@ -50,7 +63,9 @@ __enum_closed_decl(arm64_core_type_t, unsigned int, {
 static inline arm64_core_type_t
 arm64_core_type(void)
 {
-#ifdef __arm64__
+#if defined(RPI4)
+	return P_CORE;
+#elif defined(__arm64__)
 	return (arm64_core_type_t)((__builtin_arm_rsr64("MPIDR_EL1") >> MPIDR_CORETYPE_SHIFT) & MPIDR_CORETYPE_MASK);
 #else
 	/**
@@ -60,7 +75,7 @@ arm64_core_type(void)
 	 * `__builtin_arm_rsr64()` not existing.
 	 */
 	return P_CORE;
-#endif /* __arm64__ */
+#endif
 }
 
 /*

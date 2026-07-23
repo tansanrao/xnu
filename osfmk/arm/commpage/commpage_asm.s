@@ -275,8 +275,16 @@ _pfz_trylock_and_enqueue:
 	mov		w11, #1			 // locked value = w11 = 1
 
 	// Try to grab the lock
+#if defined(RPI4)
+	ldaxr	w10, [x3]
+	cbnz	w10, Ltrylock_enqueue_failed
+	stxr	w12, w11, [x3]
+	cbz	w12, Ltrylock_enqueue_success
+Ltrylock_enqueue_failed:
+#else
 	casa	w10, w11, [x3]	 // Atomic CAS with acquire barrier
 	cbz		w10, Ltrylock_enqueue_success
+#endif
 
 	mov		x0, #-1			// Failed
 	b Ltrylock_enqueue_exit
@@ -325,8 +333,16 @@ _pfz_trylock_and_dequeue:
 	mov		w10, wzr		 // unlock value = w10 = 0
 	mov		w11, #1			 // locked value = w11 = 1
 
+#if defined(RPI4)
+	ldaxr	w10, [x2]
+	cbnz	w10, Ltrylock_dequeue_failed
+	stxr	w12, w11, [x2]
+	cbz	w12, Ltrylock_dequeue_success
+Ltrylock_dequeue_failed:
+#else
 	casa	w10, w11, [x2]	 // Atomic CAS with acquire barrier
 	cbz		w10, Ltrylock_dequeue_success
+#endif
 
 	mov		x0, #-1			// Failed
 	b Ltrylock_dequeue_exit

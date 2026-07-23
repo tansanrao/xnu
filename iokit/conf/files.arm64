@@ -1,8 +1,7 @@
-iokit/Families/IONVRAM/IONVRAMController.cpp				optional iokitcpp
+iokit/Families/IONVRAM/IONVRAMController.cpp				optional iokitcpp not no_apple_arm_drivers
 
 # Power Domains
 iokit/Kernel/IOPMrootDomain.cpp    					optional iokitcpp
 
 # SMP
-iokit/Kernel/arm/AppleARMSMP.cpp    					optional iokitcpp
-
+iokit/Kernel/arm/AppleARMSMP.cpp    					optional iokitcpp not no_apple_arm_drivers

@@ -29,7 +29,7 @@ SUPPORTED_ARM64_MACHINE_CONFIGS = NONE
 else ifneq ($(findstring _host,$(RC_ProjectName)),)
 SUPPORTED_ARM64_MACHINE_CONFIGS = NONE
 else
-SUPPORTED_ARM64_MACHINE_CONFIGS = T6000 T6020 T6030 T6031 T6041 T6050 T8101 T8103 T8112 T8122 T8132 T8142 VMAPPLE
+SUPPORTED_ARM64_MACHINE_CONFIGS = T6000 T6020 T6030 T6031 T6041 T6050 T8101 T8103 T8112 T8122 T8132 T8142 VMAPPLE RPI4
 
 SPTM_ENABLED_SOCS_MacOSX = t6000 t8112 t6020 t8122 t6030 t6031 t6041 t6050 t8132 t8142
 EXCLAVES_ENABLED_SOCS_MacOSX = t8142 t6050
@@ -55,8 +55,12 @@ endif
 
 ARM64_EXTRA_BUILD_FLAGS =
 
-# Enable BTI by default for all ARM64 targets
-BTI_BUILD = 1
+# Enable BTI by default for Apple ARM64 targets. Cortex-A72 predates BTI.
+ifeq ($(CURRENT_MACHINE_CONFIG),RPI4)
+BTI_BUILD ?= 0
+else
+BTI_BUILD ?= 1
+endif
 
 
 # -mkernel contains BTI by default
@@ -93,6 +97,7 @@ MACHINE_FLAGS_ARM64_T8132 = -DARM64_BOARD_CONFIG_T8132			-mcpu=apple-m4
 MACHINE_FLAGS_ARM64_T8142 = -DARM64_BOARD_CONFIG_T8142 			-mcpu=apple-m4+memtag+predres2
 
 MACHINE_FLAGS_ARM64_VMAPPLE = -DARM64_BOARD_CONFIG_VMAPPLE              -march=armv8.5a+sme2
+MACHINE_FLAGS_ARM64_RPI4 = -DARM64_BOARD_CONFIG_RPI4                    -mcpu=cortex-a72
 
 
 #
@@ -351,6 +356,10 @@ ARCH_FLAGS_ARM64          = -arch arm64e
 else
 
 ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG ?=
+
+ifeq ($(CURRENT_MACHINE_CONFIG),RPI4)
+export ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG := arm64
+endif
 
 ifeq ($(ARCH_STRING_FOR_CURRENT_MACHINE_CONFIG),)
 
@@ -1123,6 +1132,8 @@ LDFLAGS_KERNEL_ONLY_SUBARCH_arm64e = \
 	-Wl,-add_split_seg_info \
 	-Wl,-kernel
 
+LDFLAGS_KERNEL_ONLY_SUBARCH_arm64 = $(LDFLAGS_KERNEL_ONLY_SUBARCH_arm64e)
+
 LDFLAGS_KERNEL_ONLY_SUBARCH_x86_64 = \
 	-Wl,-add_split_seg_info \
 	-Wl,-kernel
@@ -1152,7 +1163,9 @@ LD_KERNEL_ARCHIVES = $(LDFLAGS_KERNEL_SDK) -lfirehose_kernel
 
 # Link binary support library
 ifneq ($(CURRENT_MACHINE_CONFIG),NONE)
+ifneq ($(CURRENT_MACHINE_CONFIG),RPI4)
         LDFLAGS_KERNEL_ONLY += -rdynamic -Wl,-force_load,$(KDKROOT)/System/Library/KernelSupport/lib$(CURRENT_MACHINE_CONFIG).os.$(CURRENT_KERNEL_CONFIG).a
+endif
 endif
 
 #
@@ -1190,11 +1203,13 @@ ifeq ($(EXCLAVES_ENABLED),1)
 endif # !EXCLAVES_ENABLED
 
 
+ifneq ($(CURRENT_MACHINE_CONFIG),RPI4)
 ifneq ($(wildcard $(SDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a),)
 XNU_CONFIG_TIGHTBEAM := 1
 TIGHTBEAM_IN_SDK := 1
 else ifneq ($(wildcard $(KDKROOT)/usr/local/lib/kernel/platform/libTightbeam.a),)
 XNU_CONFIG_TIGHTBEAM := 1
+endif
 endif
 ifeq ($(XNU_CONFIG_TIGHTBEAM),1)
   ifeq ($(TIGHTBEAM_IN_SDK),1)

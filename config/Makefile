@@ -191,7 +191,11 @@ $(DSTROOT)/$(KRESDIR)/$(MD_SUPPORTED_KPI_FILENAME) $(DSTROOT)/$(KRESDIR)/$(MI_SU
 ifneq ($(RC_ProjectName),xnu_libraries)
 
 do_build_all:: build_symbol_set_plists
+ifeq ($(CURRENT_MACHINE_CONFIG),RPI4)
+do_config_all:: $(TARGET)/allsymbols
+else
 do_config_all:: build_symbol_sets
+endif
 
 ifneq ($(INSTALL_KASAN_ONLY),1)
 

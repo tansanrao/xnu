@@ -251,6 +251,12 @@
 /* D-Cache. */
 #define MMU_CLINE   6
 
+#elif defined (RPI4)
+
+/* Cortex-A72 L1 cache lines are 64 bytes. */
+#define MMU_I_CLINE 6
+#define MMU_CLINE   6
+
 #else
 #error processor not supported
 #endif

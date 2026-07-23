@@ -354,6 +354,19 @@ LEXT(CleanPoC_DcacheRegion_Force)
 	b		EXT(CleanPoC_DcacheRegion_internal)
 #endif /* APPLE_ARM64_ARCH_FAMILY */
 
+#if defined(RPI4)
+/*
+ * The non-Apple cache-maintenance path has no HID register workaround and
+ * does not change preemption state. Export the classic pmap entry point as a
+ * direct architectural clean-to-PoC operation.
+ */
+	.text
+	.align 2
+	.globl EXT(CleanPoC_DcacheRegion_Force_nopreempt_nohid)
+LEXT(CleanPoC_DcacheRegion_Force_nopreempt_nohid)
+	b		EXT(CleanPoC_DcacheRegion_internal)
+#endif
+
 /*
  *	void FlushPoC_Dcache(void)
  *
