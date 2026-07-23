@@ -1932,8 +1932,8 @@ pmap_map_bd_with_options(
 		panic("%s: end 0x%lx is not page aligned", __func__, end);
 	}
 
-	if (__improbable(!gDramBase || !gDramSize)) {
-		panic("%s: gDramBase/gDramSize not initialized", __func__);
+	if (__improbable(!gDramSize)) {
+		panic("%s: gDramSize not initialized", __func__);
 	}
 
 	const bool first_page_is_dram = is_dram_addr(start);

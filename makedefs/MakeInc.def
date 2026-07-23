@@ -448,11 +448,15 @@ ARM64_LARGE_MEMORY = 0
 ARM64_PLKSEG_ADDR  = 0xfffffff004004000
 ARM64_LINK_ADDR    = 0xfffffff007004000
 
-# Use ARM_LARGE_MEMORY config for all MacOSX targets.
+# Use ARM_LARGE_MEMORY config for Apple MacOSX targets. RPI4 uses 4KB
+# translation tables whose bootstrap TTBR1 covers the upper 512GB only, so it
+# must retain the small-memory link addresses above.
 ifneq ($(filter $(PLATFORM),MacOSX),)
+ifneq ($(CURRENT_MACHINE_CONFIG),RPI4)
 ARM64_LARGE_MEMORY = 1
 ARM64_PLKSEG_ADDR  = 0xfffffe0004004000
 ARM64_LINK_ADDR    = 0xfffffe0007004000
+endif
 endif
 
 
