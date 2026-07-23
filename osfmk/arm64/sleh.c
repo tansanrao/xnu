@@ -3035,6 +3035,9 @@ void
 sleh_fiq(arm_saved_state_t *state)
 {
 	unsigned int type   = DBG_INTR_TYPE_UNKNOWN;
+#if HAS_GIC_V2
+	uint32_t iar = pe_gicv2_acknowledge_timer();
+#endif
 #if MACH_ASSERT
 	int preemption_level = sleh_get_preemption_level();
 #endif
@@ -3044,7 +3047,9 @@ sleh_fiq(arm_saved_state_t *state)
 	uint64_t pmcr0 = 0, upmsr = 0;
 #endif /* CONFIG_CPU_COUNTERS && !CPMU_AIC_PMI */
 
-#if defined(HAS_IPI)
+#if HAS_GIC_V2
+	type = DBG_INTR_TYPE_TIMER;
+#elif defined(HAS_IPI)
 	boolean_t    is_ipi = FALSE;
 	uint64_t     ipi_sr = 0;
 
@@ -3124,6 +3129,9 @@ sleh_fiq(arm_saved_state_t *state)
 		__builtin_arm_wsr64("ICC_EOIR0_EL1", iar);
 		__builtin_arm_isb(ISB_SY);
 	}
+#endif
+#if HAS_GIC_V2
+	pe_gicv2_end_of_interrupt(iar);
 #endif
 
 	sleh_interrupt_handler_epilogue();

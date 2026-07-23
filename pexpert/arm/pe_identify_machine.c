@@ -187,6 +187,7 @@ vm_offset_t     gPicBase;
 vm_offset_t     gTimerBase;
 vm_offset_t     gSocPhys;
 
+#if !HAS_GIC_V2
 static uint32_t
 pe_arm_map_interrupt_controller(void)
 {
@@ -227,6 +228,7 @@ pe_arm_map_interrupt_controller(void)
 
 	return 1;
 }
+#endif /* !HAS_GIC_V2 */
 
 uint32_t
 pe_arm_init_interrupts(void *args)
@@ -235,9 +237,22 @@ pe_arm_init_interrupts(void *args)
 
 	/* Set up mappings for interrupt controller and possibly timers (if they haven't been set up already) */
 	if (args != NULL) {
+#if HAS_GIC_V2
+		/*
+		 * The Pi 4 uses the ARM architectural timer, which has no MMIO
+		 * "reg" property.  The GICv2 backend maps both controller regions
+		 * later from pe_init_fiq(); do not feed the timer node through the
+		 * legacy MMIO mapper.
+		 */
+		gSocPhys = pe_arm_get_soc_base_phys();
+		if (gSocPhys == 0) {
+			return 0;
+		}
+#else
 		if (!pe_arm_map_interrupt_controller()) {
 			return 0;
 		}
+#endif /* HAS_GIC_V2 */
 	}
 
 	return pe_arm_init_timer(args);

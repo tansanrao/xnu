@@ -50,6 +50,7 @@
 #include <machine/atomic.h>
 #include <machine/monotonic.h>
 #include <pexpert/pexpert.h>
+#include <pexpert/arm/protos.h>
 #include <pexpert/device_tree.h>
 #include <pexpert/arm64/apple_arm64_cpu.h>
 
@@ -67,6 +68,10 @@ extern volatile uint32_t debug_enabled;
 extern _Atomic unsigned int cluster_type_num_active_cpus[MAX_CPU_TYPES];
 #if RPI4_UP_ONLY
 void rpi4_boot_diagnostics(void);
+#if HAS_GIC_V2
+boolean_t rpi4_phase6_timer_arm(void);
+__attribute__((noreturn)) void rpi4_phase6_timer_test(void);
+#endif /* HAS_GIC_V2 */
 #endif /* RPI4_UP_ONLY */
 const char *cluster_type_names[MAX_CPU_TYPES] = {
 	[CLUSTER_TYPE_SMP] = "Standard",
@@ -1546,6 +1551,128 @@ rpi4_boot_diagnostics(void)
 	printf("RPI4: UP TOPOLOGY CPU=%u MPIDR=0x%06x\n",
 	    rpi4_topology->boot_cpu->cpu_id, rpi4_topology->boot_cpu->phys_id);
 }
+
+#if HAS_GIC_V2
+static boolean_t rpi4_phase6_test_enabled;
+
+boolean_t
+rpi4_phase6_timer_arm(void)
+{
+	int boot_arg = 0;
+	uint64_t interval;
+
+	rpi4_phase6_test_enabled =
+	    PE_parse_boot_argn("rpi4_phase6_test", &boot_arg, sizeof(boot_arg)) &&
+	    boot_arg != 0;
+	if (!rpi4_phase6_test_enabled) {
+		return FALSE;
+	}
+
+	clock_interval_to_absolutetime_interval(
+	    10, NSEC_PER_MSEC, &interval);
+	if (interval == 0 || interval > UINT32_MAX) {
+		panic("RPI4: PHASE6 invalid one-shot interval 0x%llx", interval);
+	}
+	printf("RPI4: TIMER TEST START INTERVAL_MS=100 WAKES=600\n");
+	ml_set_decrementer((uint32_t)interval);
+	return TRUE;
+}
+
+__attribute__((noreturn))
+void
+rpi4_phase6_timer_test(void)
+{
+	struct pe_gicv2_stats stats;
+	uint64_t deadline;
+	uint64_t start;
+	uint64_t previous_time;
+	uint64_t end;
+	uint64_t elapsed_ns;
+	uint64_t first_timer_count;
+
+	if (!rpi4_phase6_test_enabled) {
+		panic("RPI4: PHASE6 timer test entered without boot argument");
+	}
+
+	clock_interval_to_deadline(1, NSEC_PER_SEC, &deadline);
+	do {
+		pe_gicv2_get_stats(&stats);
+		if (stats.timer_interrupts != 0) {
+			break;
+		}
+	} while (mach_absolute_time() < deadline);
+	if (stats.timer_interrupts == 0) {
+		panic("RPI4: PHASE6 one-shot timer did not fire");
+	}
+	printf("RPI4: TIMER ONE-SHOT INTID=27\n");
+
+	first_timer_count = stats.timer_interrupts;
+	start = mach_absolute_time();
+	previous_time = start;
+	for (uint32_t wake = 1; wake <= 600; ++wake) {
+		uint64_t previous_timer_count = stats.timer_interrupts;
+		uint64_t now;
+
+		delay_for_interval(100, NSEC_PER_MSEC);
+		now = mach_absolute_time();
+		pe_gicv2_get_stats(&stats);
+		if (now <= previous_time) {
+			panic("RPI4: PHASE6 time did not advance at wake %u", wake);
+		}
+		if (stats.timer_interrupts <= previous_timer_count) {
+			panic("RPI4: PHASE6 timer count did not advance at wake %u",
+			    wake);
+		}
+		previous_time = now;
+		if ((wake % 100u) == 0) {
+			printf("RPI4: TIMER SLEEP/WAKE PROGRESS WAKES=%u "
+			    "FIQS=%llu\n", wake,
+			    stats.timer_interrupts - first_timer_count);
+		}
+	}
+	end = mach_absolute_time();
+	absolutetime_to_nanoseconds(end - start, &elapsed_ns);
+	pe_gicv2_get_stats(&stats);
+
+	if (elapsed_ns < 60ULL * NSEC_PER_SEC ||
+	    stats.timer_interrupts - first_timer_count < 600 ||
+	    stats.timer_interrupts - first_timer_count > 100000 ||
+	    stats.acknowledgements != stats.end_of_interrupts ||
+	    stats.nested_interrupts != 0 ||
+	    stats.spurious_interrupts != 0 ||
+	    stats.unexpected_interrupts != 0 ||
+	    stats.stuck_active_interrupts != 0 ||
+	    stats.active_interrupt != 0) {
+		panic("RPI4: PHASE6 accounting failure elapsed_ns=%llu "
+		    "fiqs=%llu ack=%llu eoi=%llu nested=%llu spurious=%llu "
+		    "unexpected=%llu stuck=%llu active=0x%x",
+		    elapsed_ns, stats.timer_interrupts - first_timer_count,
+		    stats.acknowledgements, stats.end_of_interrupts,
+		    stats.nested_interrupts, stats.spurious_interrupts,
+		    stats.unexpected_interrupts, stats.stuck_active_interrupts,
+		    stats.active_interrupt);
+	}
+
+	printf("RPI4: TIMER SLEEP/WAKE PASS ELAPSED_MS=%llu WAKES=600 "
+	    "FIQS=%llu ACK=%llu EOI=%llu NESTED=%llu SPURIOUS=%llu "
+	    "UNEXPECTED=%llu STUCK=%llu ACTIVE=%u\n",
+	    elapsed_ns / NSEC_PER_MSEC,
+	    stats.timer_interrupts - first_timer_count,
+	    stats.acknowledgements, stats.end_of_interrupts,
+	    stats.nested_interrupts, stats.spurious_interrupts,
+	    stats.unexpected_interrupts, stats.stuck_active_interrupts,
+	    stats.active_interrupt);
+
+	/*
+	 * Hold at the proven Phase 6 boundary.  Later startup currently requires
+	 * the corecrypto/platform-service work assigned to Phase 7, while this
+	 * loop continues to exercise scheduler time and FIQ delivery.
+	 */
+	for (;;) {
+		delay_for_interval(1, NSEC_PER_SEC);
+	}
+}
+#endif /* HAS_GIC_V2 */
 #endif /* RPI4_UP_ONLY */
 
 void

@@ -8,6 +8,7 @@
 #include <mach/mach_time.h>
 #include <machine/atomic.h>
 #include <machine/machine_routines.h>
+#include <pexpert/arm/protos.h>
 #include <pexpert/device_tree.h>
 #include <pexpert/arm64/board_config.h>
 
@@ -168,6 +169,12 @@ pe_init_fiq()
 	gicd_write32(GICD_CTLR, gicd_ctlr);
 	__builtin_arm_wsr64("ICC_IGRPEN0_EL1", 1);
 	__builtin_arm_isb(ISB_SY);
+}
+#elif HAS_GIC_V2
+void
+pe_init_fiq()
+{
+	pe_gicv2_init();
 }
 #else
 void

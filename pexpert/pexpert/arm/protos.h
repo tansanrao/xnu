@@ -38,6 +38,22 @@ int uart_getc(void);
 
 void pe_init_fiq(void);
 
+struct pe_gicv2_stats {
+	uint64_t acknowledgements;
+	uint64_t end_of_interrupts;
+	uint64_t timer_interrupts;
+	uint64_t nested_interrupts;
+	uint64_t spurious_interrupts;
+	uint64_t unexpected_interrupts;
+	uint64_t stuck_active_interrupts;
+	uint32_t active_interrupt;
+};
+
+void pe_gicv2_init(void);
+uint32_t pe_gicv2_acknowledge_timer(void);
+void pe_gicv2_end_of_interrupt(uint32_t iar);
+void pe_gicv2_get_stats(struct pe_gicv2_stats *stats);
+
 #ifdef PRIVATE
 /**
  * One hot ids to distinquish between all supported serial devices

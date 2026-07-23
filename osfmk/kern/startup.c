@@ -198,6 +198,10 @@ extern void OSKextRemoveKextBootstrap(void);
 void scale_setup(void);
 #if RPI4_UP_ONLY
 extern void rpi4_boot_diagnostics(void);
+#if HAS_GIC_V2
+extern boolean_t rpi4_phase6_timer_arm(void);
+__attribute__((noreturn)) extern void rpi4_phase6_timer_test(void);
+#endif /* HAS_GIC_V2 */
 #endif /* RPI4_UP_ONLY */
 extern void bsd_scale_setup(int);
 extern unsigned int semaphore_max;
@@ -810,6 +814,18 @@ kernel_bootstrap_thread(void)
 #endif
 
 	assert(ml_get_interrupts_enabled() == FALSE);
+
+#if RPI4_UP_ONLY && HAS_GIC_V2
+	/*
+	 * The bootarg-gated Phase 6 image stops at the timer boundary before
+	 * EARLY_BOOT pulls in platform services that belong to the next phase.
+	 * Ordinary RPI4 boots preserve the normal startup sequence below.
+	 */
+	if (rpi4_phase6_timer_arm()) {
+		(void)spllo();
+		rpi4_phase6_timer_test();
+	}
+#endif
 
 	/*
 	 * Past this point, kernel subsystems that expect to operate with

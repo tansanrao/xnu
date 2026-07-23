@@ -21,6 +21,7 @@
 #define __ARM_V8_CRYPTO_EXTENSIONS__           1
 
 #define ARM_ARCH_TIMER
+#define HAS_GIC_V2                             1
 #define HAS_FAST_CNTVCT                        1
 #define ARM_VM_PAGE_SIZE_FIXED_TO_HW           1
 
