@@ -2361,8 +2361,30 @@ IOPanicPlatform::start(IOService * provider)
 		platform_name = provider->getName();
 	}
 
+#if defined(ARM64_BOARD_CONFIG_RPI4) && DEVELOPMENT
+	/*
+	 * A standalone Raspberry Pi kernel has no kernel collection or external
+	 * platform-expert kext. For Phase 7, use the base platform expert as the
+	 * smallest boundary that lets IOKit publish the device-tree root and
+	 * continue to BSD init. Keep the normal panic everywhere else.
+	 */
+	printf("RPI4: IOKIT MINIMAL PLATFORM EXPERT PROVIDER=%s\n",
+	    platform_name);
+	bool started = IOPlatformExpert::start(provider);
+	if (started) {
+		/*
+		 * Apple platform drivers normally publish IOCPU objects and nail
+		 * down this count. The RPI4_UP_ONLY topology deliberately has one
+		 * CPU and no such driver; satisfy the same startup contract here.
+		 */
+		ml_set_max_cpus(1);
+		printf("RPI4: IOKIT CPU TOPOLOGY FINALIZED CPUS=1\n");
+	}
+	return started;
+#else
 	panic("Unable to find driver for this platform: \"%s\".",
 	    platform_name);
 
 	return false;
+#endif
 }

@@ -41,6 +41,8 @@ corecrypto_available(void)
 	return g_crypto_funcs ? 1 : 0;
 }
 
+#if !defined(RPI4_CORECRYPTO)
+
 const struct ccmode_cbc  *
 ccaes_cbc_decrypt_mode(void)
 {
@@ -115,3 +117,5 @@ ccdes_key_set_odd_parity(void *key, unsigned long length)
 		(*g_crypto_funcs->ccdes_key_set_odd_parity_fn)(key, length);
 	}
 }
+
+#endif /* !defined(RPI4_CORECRYPTO) */

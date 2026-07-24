@@ -5449,6 +5449,26 @@ IOService::setRootMedia(IOService * root)
 	bool unhide;
 
 	ioblockstoragedriverClass = OSMetaClass::getMetaClassWithName(gIOBlockStorageDriverKey);
+#if ARM64_BOARD_CONFIG_RPI4 && DEVELOPMENT
+	if (!ioblockstoragedriverClass && !root) {
+		/*
+		 * The Phase 7 root is mockfs over md0, not an IOMedia-backed block
+		 * device.  A normal kernel collection always supplies
+		 * IOBlockStorageDriver; the deliberately minimal Pi 4 collection
+		 * does not.
+		 */
+		LOCKWRITENOTIFY();
+		unhide = (kIOServiceRootMediaParentInvalid == gIOServiceRootMediaParent);
+		if (unhide) {
+			gIOServiceRootMediaParent = NULL;
+		}
+		UNLOCKNOTIFY();
+		if (unhide) {
+			IOLog("RPI4: IOKIT ROOT MEDIA NONE MOCKFS=1\n");
+		}
+		return;
+	}
+#endif
 	assert(ioblockstoragedriverClass);
 
 	while (root) {

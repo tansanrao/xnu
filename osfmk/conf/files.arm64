@@ -121,7 +121,8 @@ osfmk/arm64/mte.c	standard
 osfmk/arm64/vm_mte_compress.c   standard
 osfmk/arm64/sme.c		standard
 osfmk/arm64/static_if.c	standard
-osfmk/arm64/corecrypto/sha256_compress_arm64.s	standard
+osfmk/arm64/corecrypto/sha256_compress_arm64.s	optional not rpi4_corecrypto
+osfmk/arm64/rpi4_corecrypto.c	optional rpi4_corecrypto
 osfmk/arm64/x86_64_compat.c	standard
 
 osfmk/arm/counter.c	standard

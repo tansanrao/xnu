@@ -198,6 +198,8 @@ extern void OSKextRemoveKextBootstrap(void);
 void scale_setup(void);
 #if RPI4_UP_ONLY
 extern void rpi4_boot_diagnostics(void);
+extern void rpi4_corecrypto_init(void);
+extern void rpi4_pthread_provider_init(void);
 #if HAS_GIC_V2
 extern boolean_t rpi4_phase6_timer_arm(void);
 __attribute__((noreturn)) extern void rpi4_phase6_timer_test(void);
@@ -827,6 +829,17 @@ kernel_bootstrap_thread(void)
 	}
 #endif
 
+#if RPI4_UP_ONLY
+	/*
+	 * The Apple kernel collection normally starts corecrypto and pthread as
+	 * root kexts. Phase 7 statically starts corecrypto and installs its
+	 * single-threaded pthread boundary on explicit boot-argument gates before
+	 * their first consumers.
+	 */
+	rpi4_corecrypto_init();
+	rpi4_pthread_provider_init();
+#endif
+
 	/*
 	 * Past this point, kernel subsystems that expect to operate with
 	 * interrupts or preemption enabled may begin enforcement.
@@ -886,13 +899,35 @@ kernel_bootstrap_thread(void)
 
 	kernel_bootstrap_log("trust_cache_init");
 
+#if RPI4_UP_ONLY && DEVELOPMENT
+	uint32_t rpi4_trust_cache_bypass = 0;
+	if (PE_parse_boot_argn("rpi4_trust_cache_bypass",
+	    &rpi4_trust_cache_bypass, sizeof(rpi4_trust_cache_bypass)) &&
+	    rpi4_trust_cache_bypass != 0) {
+		/*
+		 * The standalone Pi image has no Image4 or AMFI root-kext
+		 * interfaces and carries no trust cache. This explicit
+		 * DEVELOPMENT-only path is paired with code-signing enforcement
+		 * disabled for the ad-hoc-signed Phase 7 PID 1.
+		 */
+		printf("RPI4: TRUST CACHE BYPASS DEVELOPMENT=1\n");
+	} else
+#endif
+	{
 	/* Initialize the runtime for the trust cache interface */
 	trust_cache_runtime_init();
 
 	/* Load the static and engineering trust caches */
 	load_static_trust_cache();
+	}
 
+#if RPI4_UP_ONLY
+	printf("RPI4: STARTUP LOCKDOWN BEGIN\n");
+#endif
 	kernel_startup_initialize_upto(STARTUP_SUB_LOCKDOWN);
+#if RPI4_UP_ONLY
+	printf("RPI4: STARTUP LOCKDOWN READY\n");
+#endif
 
 	/*
 	 * Get rid of segments used to bootstrap kext loading. This removes
@@ -902,6 +937,9 @@ kernel_bootstrap_thread(void)
 	 */
 	kernel_bootstrap_log("OSKextRemoveKextBootstrap");
 	OSKextRemoveKextBootstrap();
+#if RPI4_UP_ONLY
+	printf("RPI4: KEXT BOOTSTRAP REMOVED\n");
+#endif
 
 #if SOCKETS
 	/*
@@ -913,6 +951,9 @@ kernel_bootstrap_thread(void)
 	/* No changes to kernel text and rodata beyond this point. */
 	kernel_bootstrap_log("machine_lockdown");
 	machine_lockdown();
+#if RPI4_UP_ONLY
+	printf("RPI4: MACHINE LOCKDOWN READY\n");
+#endif
 
 #ifdef CONFIG_XNUPOST
 	kern_return_t result = kernel_list_tests();
@@ -925,7 +966,13 @@ kernel_bootstrap_thread(void)
 
 #ifdef  IOKIT
 	kernel_bootstrap_log("PE_lockdown_iokit");
+#if RPI4_UP_ONLY
+	printf("RPI4: IOKIT MATCHING BEGIN\n");
+#endif
 	PE_lockdown_iokit();
+#if RPI4_UP_ONLY
+	printf("RPI4: IOKIT MATCHING READY\n");
+#endif
 #endif
 	/*
 	 * max_cpus must be nailed down by the time PE_lockdown_iokit() finishes,
@@ -942,6 +989,9 @@ kernel_bootstrap_thread(void)
 	 *	Start the user bootstrap.
 	 */
 #ifdef  MACH_BSD
+#if RPI4_UP_ONLY
+	printf("RPI4: BSD INIT BEGIN\n");
+#endif
 	bsd_init();
 #endif
 

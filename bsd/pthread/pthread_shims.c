@@ -57,6 +57,12 @@
 #include <vm/vm_protos.h>
 #include <kern/kcdata.h>
 
+#if RPI4_PTHREAD
+#include <pexpert/pexpert.h>
+
+void rpi4_pthread_provider_init(void);
+#endif
+
 /* version number of the in-kernel shims given to pthread.kext */
 #define PTHREAD_SHIMS_VERSION 1
 
@@ -647,3 +653,53 @@ pthread_kext_register(pthread_functions_t fns, pthread_callbacks_t *callbacks)
 		pthread_functions = fns;
 	}
 }
+
+#if RPI4_PTHREAD
+/*
+ * Phase 7 has a statically linked, single-threaded PID 1 and does not make
+ * bsdthread, psynch, or workqueue syscalls.  A kernel collection would
+ * normally start Apple's separate pthread kext before bsd_init().  Register
+ * only the two lifecycle hooks required by the Phase 7 process path; leave
+ * the unsupported syscall entries NULL so an accidental use fails loudly
+ * instead of masquerading as a complete pthread provider.
+ */
+static void
+rpi4_pthread_init(void)
+{
+}
+
+static void
+rpi4_pthread_proc_hashinit(__unused proc_t p)
+{
+}
+
+static void
+rpi4_pthread_proc_hashdelete(__unused proc_t p)
+{
+}
+
+static const struct pthread_functions_s rpi4_pthread_functions = {
+	.version = PTHREAD_FUNCTIONS_TABLE_VERSION,
+	.pthread_init = rpi4_pthread_init,
+	.pth_proc_hashinit = rpi4_pthread_proc_hashinit,
+	.pth_proc_hashdelete = rpi4_pthread_proc_hashdelete,
+};
+
+void
+rpi4_pthread_provider_init(void)
+{
+	uint32_t enabled = 0;
+	pthread_callbacks_t callbacks = NULL;
+
+	printf("RPI4: PTHREAD MINIMAL PROVIDER PROBE\n");
+	if (!PE_parse_boot_argn("rpi4_pthread", &enabled, sizeof(enabled)) ||
+	    enabled == 0) {
+		printf("RPI4: PTHREAD MINIMAL PROVIDER SKIP BOOTARG=0\n");
+		return;
+	}
+
+	pthread_kext_register(&rpi4_pthread_functions, &callbacks);
+	assert(callbacks != NULL);
+	printf("RPI4: PTHREAD MINIMAL PROVIDER READY\n");
+}
+#endif /* RPI4_PTHREAD */

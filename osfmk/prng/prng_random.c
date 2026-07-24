@@ -191,9 +191,11 @@ bootseed_init(void)
 static struct {
 	uint8_t drbg_state[EARLY_RANDOM_STATE_STATIC_SIZE];
 	struct ccdrbg_info drbg_info;
-	const struct ccdrbg_nisthmac_custom drbg_custom;
+	struct ccdrbg_nisthmac_custom drbg_custom;
 } erandom = {.drbg_custom = {
+#if !RPI4_CORECRYPTO
 		     .di         = &ccsha256_ltc_di,
+#endif
 		     .strictFIPS = 0,
 	     }};
 
@@ -204,6 +206,14 @@ early_random_init(void)
 	uint64_t nonce;
 	int rc;
 	const char ps[] = "xnu early random";
+
+#if RPI4_CORECRYPTO
+	/*
+	 * The current static provider omits the portable LTC descriptor in its
+	 * kernel build. Select its arm64 SHA-256 implementation at runtime.
+	 */
+	erandom.drbg_custom.di = ccsha256_di();
+#endif
 
 	bootseed_init();
 

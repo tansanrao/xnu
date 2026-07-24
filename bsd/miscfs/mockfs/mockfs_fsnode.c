@@ -348,7 +348,20 @@ mockfs_fsnode_vnode(mockfs_fsnode_t fsnp, vnode_t * vpp)
 			rvalue = pager_map_to_phys_contiguous(ubc_mem_object, 0, (mockfs_mnt->mockfs_memdev_base << PAGE_SHIFT), fsnp->size);
 
 			if (rvalue) {
+#if ARM64_BOARD_CONFIG_RPI4 && DEVELOPMENT
+				/*
+				 * The Pi loader exposes the RAM disk through
+				 * ml_static_ptovirt().  That static KVA is readable by
+				 * memdev but is not discoverable through
+				 * pmap_find_phys(), so use mockfs's ordinary device
+				 * page-in path.
+				 */
+				printf("RPI4: MOCKFS DEVICE PAGEIN FALLBACK KR=%d\n", rvalue);
+				mockfs_mnt->mockfs_memory_backed = FALSE;
+				rvalue = 0;
+#else
 				panic("mockfs_fsnode_vnode failed to create fictitious pages for a memory-backed device; rvalue = %d", rvalue);
+#endif
 			}
 		}
 

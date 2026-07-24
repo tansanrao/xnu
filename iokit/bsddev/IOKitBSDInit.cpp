@@ -1047,6 +1047,17 @@ IOSecureBSDRoot(const char * rootName)
 	OSDictionary     *matching;
 	const OSSymbol   *functionName = OSSymbol::withCStringNoCopy("SecureRootName");
 
+#if ARM64_BOARD_CONFIG_RPI4 && DEVELOPMENT
+	uint32_t bypass = 0;
+	if (IORamDiskBSDRoot() &&
+	    PE_parse_boot_argn("rpi4_secure_root_bypass", &bypass, sizeof(bypass)) &&
+	    bypass != 0) {
+		IOLog("RPI4: SECURE ROOT BYPASS DEVELOPMENT=1 ROOT=%s\n", rootName);
+		functionName->release();
+		return;
+	}
+#endif
+
 	matching = IOService::serviceMatching("IOPlatformExpert");
 	assert(matching);
 	pe = (IOPlatformExpert *) IOService::waitForMatchingService(matching, 30ULL * kSecondScale);
@@ -1564,6 +1575,12 @@ IOCurrentTaskHasStringEntitlement(const char *entitlement, const char *value)
 extern "C" boolean_t
 IOTaskHasStringEntitlement(task_t task, const char *entitlement, const char *value)
 {
+#if ARM64_BOARD_CONFIG_RPI4 && DEVELOPMENT
+	if (amfi == NULL) {
+		return false;
+	}
+#endif
+
 	if (task == NULL) {
 		task = current_task();
 	}
@@ -1607,6 +1624,12 @@ IOCurrentTaskHasEntitlement(const char *entitlement)
 extern "C" boolean_t
 IOTaskHasEntitlement(task_t task, const char *entitlement)
 {
+#if ARM64_BOARD_CONFIG_RPI4 && DEVELOPMENT
+	if (amfi == NULL) {
+		return false;
+	}
+#endif
+
 	if (task == NULL) {
 		task = current_task();
 	}
@@ -1636,6 +1659,12 @@ extern "C" boolean_t
 IOTaskGetIntegerEntitlement(task_t task, const char *entitlement, uint64_t *value)
 {
 	void *entitlement_object = NULL;
+
+#if ARM64_BOARD_CONFIG_RPI4 && DEVELOPMENT
+	if (amfi == NULL) {
+		return false;
+	}
+#endif
 
 	if (task == NULL) {
 		task = current_task();
@@ -1687,6 +1716,12 @@ IOTaskGetEntitlement(task_t task, const char *entitlement)
 	void *entitlement_object = NULL;
 	char *return_value = NULL;
 
+#if ARM64_BOARD_CONFIG_RPI4 && DEVELOPMENT
+	if (amfi == NULL) {
+		return NULL;
+	}
+#endif
+
 	if (task == NULL) {
 		task = current_task();
 	}
@@ -1726,6 +1761,12 @@ IOTaskGetEntitlement(task_t task, const char *entitlement)
 extern "C" boolean_t
 IOTaskHasEntitlementAsBooleanOrObject(task_t task, const char *entitlement)
 {
+#if ARM64_BOARD_CONFIG_RPI4 && DEVELOPMENT
+	if (amfi == NULL) {
+		return false;
+	}
+#endif
+
 	if (task == NULL) {
 		task = current_task();
 	}

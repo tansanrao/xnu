@@ -1577,6 +1577,12 @@ IOUserClient::copyClientEntitlement( task_t task,
 {
 	void *entitlement_object = NULL;
 
+#if ARM64_BOARD_CONFIG_RPI4 && DEVELOPMENT
+	if (amfi == NULL) {
+		return NULL;
+	}
+#endif
+
 	if (task == NULL) {
 		task = current_task();
 	}

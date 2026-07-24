@@ -29,6 +29,7 @@
 
 OPTIONS/hibernation		optional hibernation
 OPTIONS/crypto			optional crypto
+OPTIONS/rpi4_corecrypto		optional rpi4_corecrypto
 OPTIONS/kdebug			optional kdebug
 OPTIONS/mach_assert		optional mach_assert
 OPTIONS/mach_kdp		optional mach_kdp
@@ -372,38 +373,40 @@ osfmk/kern/telemetry.c			optional config_telemetry
 osfmk/kern/trap_telemetry.c		optional config_telemetry
 osfmk/kern/bootprofile.c		optional config_telemetry
 
-# Built-in corecrypto for early_random():
-osfmk/corecrypto/cc_clear.c	standard
-osfmk/corecrypto/cc_cmp_safe.c	standard
-osfmk/corecrypto/cc_abort.c	standard
-osfmk/corecrypto/cc_try_abort.c	standard
-osfmk/corecrypto/cc_dit.c	standard
-osfmk/corecrypto/cccbc.c	standard
-osfmk/corecrypto/ccdrbg.c	standard
-osfmk/corecrypto/ccdrbg_nisthmac.c	standard
-osfmk/corecrypto/ccdigest_init.c	standard
-osfmk/corecrypto/ccdigest_update.c	standard
-osfmk/corecrypto/ccgcm.c	standard
-osfmk/corecrypto/ccmode_gcm_gf_mult.c	standard
-osfmk/corecrypto/ccmode_gcm_mult_h.c	standard
-osfmk/corecrypto/cchkdf.c	standard
-osfmk/corecrypto/cchmac.c	standard
-osfmk/corecrypto/cchmac_init.c	standard
-osfmk/corecrypto/cchmac_update.c	standard
-osfmk/corecrypto/cchmac_final.c	standard
-osfmk/corecrypto/ccdigest_final_64be.c	standard
+# Built-in corecrypto for early_random(). The RPI4 configuration statically
+# links the full, matching provider instead of mixing these older primitives
+# with its private helpers.
+osfmk/corecrypto/cc_clear.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cc_cmp_safe.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cc_abort.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cc_try_abort.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cc_dit.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cccbc.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccdrbg.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccdrbg_nisthmac.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccdigest_init.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccdigest_update.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccgcm.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccmode_gcm_gf_mult.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccmode_gcm_mult_h.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cchkdf.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cchmac.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cchmac_init.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cchmac_update.c	optional not rpi4_corecrypto
+osfmk/corecrypto/cchmac_final.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccdigest_final_64be.c	optional not rpi4_corecrypto
 
-osfmk/corecrypto/ccsha256_di.c	standard
-osfmk/corecrypto/ccsha256_initial_state.c	standard
-osfmk/corecrypto/ccsha256_K.c	standard
-osfmk/corecrypto/ccsha256_ltc_compress.c	standard
-osfmk/corecrypto/ccsha256_ltc_di.c	standard
+osfmk/corecrypto/ccsha256_di.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccsha256_initial_state.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccsha256_K.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccsha256_ltc_compress.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccsha256_ltc_di.c	optional not rpi4_corecrypto
 
-osfmk/corecrypto/ccsha512_di.c	standard
-osfmk/corecrypto/ccsha512_initial_state.c	standard
-osfmk/corecrypto/ccsha512_K.c	standard
-osfmk/corecrypto/ccsha512_ltc_compress.c	standard
-osfmk/corecrypto/ccsha512_ltc_di.c	standard
+osfmk/corecrypto/ccsha512_di.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccsha512_initial_state.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccsha512_K.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccsha512_ltc_compress.c	optional not rpi4_corecrypto
+osfmk/corecrypto/ccsha512_ltc_di.c	optional not rpi4_corecrypto
 
 osfmk/prng/prng_random.c	standard
 osfmk/prng/entropy.c   standard

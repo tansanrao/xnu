@@ -24,6 +24,7 @@ OPTIONS/sysv_shm			optional sysv_shm
 OPTIONS/importance_inheritance		optional importance_inheritance
 OPTIONS/importance_debug		optional importance_debug
 OPTIONS/config_ecc_logging		optional config_ecc_logging
+OPTIONS/rpi4_pthread			optional rpi4_pthread
 
 #
 # Network options
