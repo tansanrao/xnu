@@ -84,8 +84,14 @@
 
 #include <arm64/proc_reg.h>
 #include <pexpert/arm64/boot.h>
+#if !defined(BCM2711)
 #include <arm64/ppl/sart.h>
+#endif
+#if !defined(BCM2711)
 #include <arm64/ppl/uat.h>
+#else
+static inline void *ptep_get_iommu(__unused pt_entry_t *ptep) { return NULL; }
+#endif
 
 #if defined(KERNEL_INTEGRITY_KTRR) || defined(KERNEL_INTEGRITY_CTRR) || defined(KERNEL_INTEGRITY_PV_CTRR)
 #include <arm64/amcc_rorgn.h>
@@ -104,6 +110,7 @@
 #include <tests/xnupost.h>
 #endif
 
+static void pmap_phys_write_disable(vm_address_t va);
 
 #if HAS_MTE
 #error invalid configuration, you must be using CONFIG_SPTM
@@ -2334,18 +2341,19 @@ pmap_bootstrap(
 	/**
 	 * Bootstrap any necessary SART data structures and values needed from the device tree.
 	 */
-	sart_bootstrap();
+#if !defined(BCM2711)
+        sart_bootstrap();
+#endif
+        /**
+         * Don't make any assumptions about the alignment of avail_start before
+         * this point (i.e., pmap_data_bootstrap() performs allocations).
+         */
+        avail_start = PMAP_ALIGN(avail_start, __alignof(bitmap_t));
 
-	/**
-	 * Don't make any assumptions about the alignment of avail_start before this
-	 * point (i.e., pmap_data_bootstrap() performs allocations).
-	 */
-	avail_start = PMAP_ALIGN(avail_start, __alignof(bitmap_t));
+        const pmap_paddr_t pmap_struct_start = avail_start;
 
-	const pmap_paddr_t pmap_struct_start = avail_start;
-
-	asid_bitmap = (bitmap_t*)phystokv(avail_start);
-	avail_start = round_page(avail_start + asid_table_size);
+        asid_bitmap = (bitmap_t *)phystokv(avail_start);
+        avail_start = round_page(avail_start + asid_table_size);
 
 	memset((char *)phystokv(pmap_struct_start), 0, avail_start - pmap_struct_start);
 
@@ -11055,9 +11063,13 @@ pmap_batch_set_cache_attributes_internal(
 				panic("%s: page is not managed; addr: 0x%016llx", __func__, paddr);
 			}
 
-			CleanPoC_DcacheRegion_Force_nopreempt_nohid(phystokv(paddr), PAGE_SIZE);
-
-			page_index++;
+#if defined(BCM2711)
+                        CleanPoC_DcacheRegion_Force(phystokv(paddr), PAGE_SIZE);
+#else
+                        CleanPoC_DcacheRegion_Force_nopreempt_nohid(
+                            phystokv(paddr), PAGE_SIZE);
+#endif
+                        page_index++;
 
 #if XNU_MONITOR
 			if (__improbable(pmap_pending_preemption() && (page_index < page_cnt))) {
@@ -12236,22 +12248,23 @@ pmap_unpin_kernel_pages(vm_offset_t kva __unused, size_t nbytes __unused)
 
 #endif /* !XNU_MONITOR */
 
-
-MARK_AS_PMAP_TEXT static inline void
-pmap_cs_lockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable)
-{
+MARK_AS_PMAP_TEXT __unused static inline void
+pmap_cs_lockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable) {
 #if XNU_MONITOR
 	pmap_ppl_lockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
+#elif defined(BCM2711)
+#pragma unused(kva, size, ppl_writable)
 #else
 	pmap_ppl_lockdown_pages(kva, size, 0, ppl_writable);
 #endif
 }
 
-MARK_AS_PMAP_TEXT static inline void
-pmap_cs_unlockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable)
-{
+MARK_AS_PMAP_TEXT __unused static inline void
+pmap_cs_unlockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable) {
 #if XNU_MONITOR
 	pmap_ppl_unlockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
+#elif defined(BCM2711)
+#pragma unused(kva, size, ppl_writable)
 #else
 	pmap_ppl_unlockdown_pages(kva, size, 0, ppl_writable);
 #endif

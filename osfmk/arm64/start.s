@@ -33,7 +33,12 @@
 #include <pexpert/arm64/board_config.h>
 #include <mach_assert.h>
 #include <machine/asm.h>
+#if defined(BCM2711)
+.macro APPLY_TUNABLES midr, tmp1, tmp2
+.endmacro
+#else
 #include <arm64/tunables/tunables.s>
+#endif
 #include <arm64/exception_asm.h>
 
 #if __ARM_KERNEL_PROTECT__

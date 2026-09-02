@@ -148,6 +148,7 @@ extern void pmap_set_ptov_ap(unsigned int, unsigned int, boolean_t);
 extern pmap_t current_pmap(void);
 extern void pmap_tt_ledger_credit(pmap_t, vm_size_t, bool);
 extern void pmap_tt_ledger_debit(pmap_t, vm_size_t, bool);
+extern void pmap_mark_page_for_cache_flush(pmap_paddr_t);
 
 extern void write_pte(pt_entry_t *, pt_entry_t);
 

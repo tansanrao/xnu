@@ -135,6 +135,16 @@
 #define NO_XNU_PLATFORM_ERROR_HANDLER  1
 #endif  /* ARM64_BOARD_CONFIG_T8101 */
 
+#ifdef ARM64_BOARD_CONFIG_BCM2711
+#include <pexpert/arm64/BCM2711.h>
+
+#define MAX_L2_CLINE 6
+#define MAX_CPUS 4
+#define MAX_CPU_CLUSTERS 1
+
+#define NO_XNU_PLATFORM_ERROR_HANDLER 1
+#endif /* ARM64_BOARD_CONFIG_BCM2711 */
+
 #ifdef ARM64_BOARD_CONFIG_T8103
 #include <pexpert/arm64/H13.h>
 

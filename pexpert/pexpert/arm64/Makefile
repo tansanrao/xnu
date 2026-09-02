@@ -33,6 +33,7 @@ PRIVATE_KERNELFILES = \
 	H15.h \
 	H16.h \
 	H17.h \
+	BCM2711.h \
 	VMAPPLE.h
 
 
