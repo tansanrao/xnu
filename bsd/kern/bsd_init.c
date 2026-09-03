@@ -274,6 +274,9 @@ extern void IOSecureBSDRoot(const char * rootName);
 extern kern_return_t IOKitBSDInit(void );
 extern boolean_t IOSetRecoveryBoot(bsd_bootfail_mode_t, uuid_t, boolean_t);
 extern void kminit(void);
+#if defined(ARM64_BOARD_CONFIG_BCM2711) && (DEVELOPMENT || DEBUG)
+extern void bcm2711_irq_test_start(void);
+#endif
 extern void bsd_bufferinit(void);
 extern void throttle_init(void);
 
@@ -813,6 +816,9 @@ bsd_init(void)
 
 	bsd_init_kprintf("calling bsd_autoconf\n");
 	bsd_autoconf();
+#if defined(ARM64_BOARD_CONFIG_BCM2711) && (DEVELOPMENT || DEBUG)
+	bcm2711_irq_test_start();
+#endif
 
 #if CONFIG_DTRACE
 	dtrace_postinit();

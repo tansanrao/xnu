@@ -189,8 +189,7 @@ vm_offset_t     gTimerBase;
 vm_offset_t     gSocPhys;
 
 #if defined(ARM64_BOARD_CONFIG_BCM2711)
-extern void bcm2711_gic_init(vm_offset_t distributor_base,
-    vm_offset_t cpu_interface_base);
+#include <arm64/bcm2711_interrupt.h>
 #endif
 
 static uint32_t

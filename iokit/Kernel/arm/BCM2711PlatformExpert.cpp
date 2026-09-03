@@ -103,6 +103,12 @@ BCM2711PlatformExpert::processTopLevel(IORegistryEntry *rootEntry)
 		cpus->release();
 	}
 
+	IORegistryEntry *soc = rootEntry->childFromPath("arm-io", gIODTPlane);
+	if (soc != nullptr) {
+		createNubs(this, IODTFindMatchingEntries(soc, kIODTExclusive, nullptr));
+		soc->release();
+	}
+
 	createNubs(this, IODTFindMatchingEntries(rootEntry, kIODTExclusive,
 	    "('chosen', 'cpus', 'defaults')"));
 }

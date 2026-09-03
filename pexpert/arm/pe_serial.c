@@ -30,6 +30,9 @@
 #include <kern/sched_prim.h>
 #ifdef PL011_UART
 #include <pexpert/arm/pl011.h>
+#include <console/serial_protos.h>
+#include <kern/locks.h>
+#include <os/atomic_private.h>
 #endif /* PL011_UART */
 #if HIBERNATION
 #include <machine/pal_hibernate.h>
@@ -197,6 +200,13 @@ MARK_AS_HIBERNATE_DATA static vm_offset_t dockchannel_uart_base = 0;
 
 #ifdef PL011_UART
 static volatile pl011_registers_t *pl011_registers = NULL;
+static LCK_GRP_DECLARE(pl011_rx_lock_group, "pl011-rx");
+static LCK_SPIN_DECLARE(pl011_rx_lock, &pl011_rx_lock_group);
+static bool pl011_rx_irq_ready;
+static _Atomic uint64_t pl011_rx_interrupts;
+static _Atomic uint64_t pl011_rx_errors;
+#define PL011_RX_IRQS ((1U << 4) | (1U << 6) | (0xfU << 7))
+
 #endif /* PL011_UART */
 
 /*****************************************************************************/
@@ -670,7 +680,80 @@ static uint8_t
 pl011_uart_receive_data(void)
 {
 	const uartdr_t uartdr = { .raw = pl011_registers->uartdr.raw };
+	if (uartdr.raw & 0xf00U) {
+		os_atomic_inc(&pl011_rx_errors, relaxed);
+		pl011_registers->uartrsr_uartecr.raw = 0;
+	}
 	return uartdr.data;
+}
+
+/* Called with pl011_rx_lock held and local IRQs disabled after IOKit starts. */
+static void
+pl011_uart_enable_irq(void)
+{
+	pl011_registers->uartimsc.raw = PL011_RX_IRQS;
+	__asm__ volatile ("dsb sy" ::: "memory");
+}
+
+static bool
+pl011_uart_disable_irq(void)
+{
+	bool enabled = (pl011_registers->uartimsc.raw & PL011_RX_IRQS) != 0;
+	pl011_registers->uartimsc.raw = 0;
+	__asm__ volatile ("dsb sy" ::: "memory");
+	return enabled;
+}
+
+static bool
+pl011_uart_acknowledge_irq(void)
+{
+	/* RIS remains readable after masking; MIS would now read zero. */
+	uint32_t status = pl011_registers->uartris.raw & PL011_RX_IRQS;
+	pl011_registers->uarticr.raw = status;
+	__asm__ volatile ("dsb sy" ::: "memory");
+	return status != 0;
+}
+
+bool
+serial_rx_wait_prepare(void)
+{
+	boolean_t irq_state = ml_set_interrupts_enabled(FALSE);
+	lck_spin_lock(&pl011_rx_lock);
+	bool ready = pl011_rx_irq_ready;
+	if (ready) {
+		/* Publish the wait before rearming. An IRQ on another CPU cannot
+		 * pass the filter lock until both the wait and recheck are complete.
+		 * Rechecking the FIFO also catches an IRQ handled before this wait.
+		 */
+		assert_wait((event_t)serial_keyboard_poll, THREAD_UNINT);
+		pl011_uart_enable_irq();
+		if (pl011_uart_receive_ready()) {
+			pl011_uart_disable_irq();
+			clear_wait(current_thread(), THREAD_AWAKENED);
+		}
+	}
+	lck_spin_unlock(&pl011_rx_lock);
+	ml_set_interrupts_enabled(irq_state);
+	return ready;
+}
+
+void
+serial_rx_irq_disable(void)
+{
+	boolean_t irq_state = ml_set_interrupts_enabled(FALSE);
+	lck_spin_lock(&pl011_rx_lock);
+	pl011_rx_irq_ready = false;
+	pl011_uart_disable_irq();
+	lck_spin_unlock(&pl011_rx_lock);
+	ml_set_interrupts_enabled(irq_state);
+	thread_wakeup((event_t)serial_keyboard_poll);
+}
+
+void
+serial_rx_irq_stats(uint64_t *interrupts, uint64_t *errors)
+{
+	*interrupts = os_atomic_load(&pl011_rx_interrupts, relaxed);
+	*errors = os_atomic_load(&pl011_rx_errors, relaxed);
 }
 
 static void
@@ -682,6 +765,9 @@ pl011_uart_init(void)
 	uartcr.rxe = 1; // This bit's reset value is 1.
 	uartcr.txe = 1; // This bit's reset value is 1.
 	pl011_registers->uartcr.raw = uartcr.raw;
+	pl011_registers->uartimsc.raw = 0;
+	pl011_registers->uarticr.raw = 0x7ff;
+	pl011_registers->uartifls.raw = 0; /* RX threshold 1/8 FIFO + receive timeout. */
 
 	// Configure 8-N-1 communication and enable FIFOs.
 	uartlcr_h_t uartlcr_h = { .raw = 0 };
@@ -704,6 +790,9 @@ SECURITY_READ_ONLY_LATE(static struct pe_serial_functions) pl011_uart_serial_fun
 	.transmit_data = pl011_uart_transmit_data,
 	.receive_ready = pl011_uart_receive_ready,
 	.receive_data = pl011_uart_receive_data,
+	.enable_irq = pl011_uart_enable_irq,
+	.disable_irq = pl011_uart_disable_irq,
+	.acknowledge_irq = pl011_uart_acknowledge_irq,
 	.device = SERIAL_PL011_UART
 };
 
@@ -724,6 +813,12 @@ pl011_uart_setup(const DeviceTreeNode *const devicetree_node)
 	// Create a virtual mapping to that physical address range.
 	const vm_offset_t soc_base_phys = pe_arm_get_soc_base_phys();
 	pl011_registers = (pl011_registers_t *)ml_io_map(soc_base_phys + reg->block_offset, reg->block_size);
+
+	const void *interrupts;
+	unsigned int interrupt_size;
+	pl011_uart_serial_functions.has_irq =
+	    SecureDTGetProperty(devicetree_node, "interrupts", &interrupts,
+	    &interrupt_size) == kSuccess && interrupt_size != 0;
 
 	// Register the PL011 UART serial driver.
 	register_serial_functions(&pl011_uart_serial_functions);
@@ -1061,7 +1156,7 @@ uart_putc_device(char c, bool poll, bool force, struct pe_serial_functions *fns)
 	}
 
 	while (!fns->transmit_ready()) {
-		if (irq_available_and_ready(fns) && !poll) {
+		if (fns->device != SERIAL_PL011_UART && irq_available_and_ready(fns) && !poll) {
 			serial_wait_for_interrupt(fns);
 		} else {
 			serial_poll();
@@ -1173,6 +1268,16 @@ serial_irq_enable(serial_device_t device)
 	}
 
 	serial_irq_status &= ~device;
+#ifdef PL011_UART
+	if (device == SERIAL_PL011_UART) {
+		boolean_t irq_state = ml_set_interrupts_enabled(FALSE);
+		lck_spin_lock(&pl011_rx_lock);
+		pl011_rx_irq_ready = true;
+		lck_spin_unlock(&pl011_rx_lock);
+		ml_set_interrupts_enabled(irq_state);
+		thread_wakeup((event_t)serial_keyboard_poll);
+	}
+#endif
 
 	return KERN_SUCCESS;
 }
@@ -1198,6 +1303,12 @@ serial_irq_action(serial_device_t device)
 	 * Because IRQs are enabled only when we know a thread is about to sleep, we
 	 * can call wake up and reasonably expect there to be a thread waiting.
 	 */
+#ifdef PL011_UART
+	if (device == SERIAL_PL011_UART) {
+		thread_wakeup((event_t)serial_keyboard_poll);
+		return KERN_SUCCESS;
+	}
+#endif
 	thread_wakeup(fns);
 
 	return KERN_SUCCESS;
@@ -1220,6 +1331,25 @@ serial_irq_filter(serial_device_t device)
 	if (!fns || !fns->has_irq) {
 		return false;
 	}
+
+#ifdef PL011_UART
+	if (device == SERIAL_PL011_UART) {
+		boolean_t irq_state = ml_set_interrupts_enabled(FALSE);
+		lck_spin_lock(&pl011_rx_lock);
+		bool enabled = pl011_uart_disable_irq();
+		bool pending = pl011_uart_acknowledge_irq();
+		/* A FIFO read can deassert RX before the in-flight IAR reaches us.
+		 * Wake the reader even then, so it will rearm the masked UART.
+		 */
+		bool wake = pl011_rx_irq_ready && (enabled || pending);
+		if (wake) {
+			os_atomic_inc(&pl011_rx_interrupts, relaxed);
+		}
+		lck_spin_unlock(&pl011_rx_lock);
+		ml_set_interrupts_enabled(irq_state);
+		return wake;
+	}
+#endif
 
 	/**
 	 * Disable IRQs until next time a thread waits for an interrupt to prevent an interrupt storm.

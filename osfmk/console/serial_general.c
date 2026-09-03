@@ -38,6 +38,24 @@
 #include <kern/thread.h>
 #include <console/serial_protos.h>
 #include <libkern/section_keywords.h>
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#include <pexpert/arm/protos.h>
+#include <os/atomic_private.h>
+static _Atomic uint64_t serial_keyboard_polls;
+static thread_t serial_keyboard_thread;
+
+void
+serial_keyboard_stats(uint64_t *polls, uint64_t *runtime_us)
+{
+	time_value_t user, system;
+	*polls = os_atomic_load(&serial_keyboard_polls, relaxed);
+	*runtime_us = 0;
+	if (serial_keyboard_thread != THREAD_NULL) {
+		thread_read_times(serial_keyboard_thread, &user, &system, NULL);
+		*runtime_us = (uint64_t)system.seconds * 1000000 + system.microseconds;
+	}
+}
+#endif
 
 extern void cons_cinput(char ch);               /* The BSD routine that gets characters */
 
@@ -64,7 +82,11 @@ serial_keyboard_init(void)
 		panic("serial_keyboard_init");
 	}
 
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+	serial_keyboard_thread = thread; /* Permanent console thread, retained for diagnostics. */
+#else
 	thread_deallocate(thread);
+#endif
 }
 
 void
@@ -80,6 +102,9 @@ serial_keyboard_poll(void)
 {
 	int chr;
 	uint64_t next;
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+	os_atomic_inc(&serial_keyboard_polls, relaxed);
+#endif
 
 	while (1) {
 		chr = _serial_getc(false); /* Get a character if there is one */
@@ -89,6 +114,12 @@ serial_keyboard_poll(void)
 		cons_cinput((char)chr); /* Buffer up the character */
 	}
 
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+	if (serial_rx_wait_prepare()) {
+		thread_block((thread_continue_t)serial_keyboard_poll);
+		__builtin_unreachable();
+	}
+#endif
 	clock_interval_to_deadline(16, 1000000, &next); /* Get time of pop */
 
 	assert_wait_deadline((event_t)serial_keyboard_poll, THREAD_UNINT, next); /* Show we are "waiting" */

@@ -43,6 +43,9 @@ extern "C" {
 #include <libkern/section_keywords.h>
 
 void serial_keyboard_init(void);
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+void serial_keyboard_stats(uint64_t *polls, uint64_t *runtime_us);
+#endif
 void serial_keyboard_start(void) __dead2;
 void serial_keyboard_poll(void) __dead2;
 

@@ -54,6 +54,11 @@ kern_return_t serial_irq_enable(serial_device_t device);
 kern_return_t serial_irq_action(serial_device_t device);
 bool serial_irq_filter(serial_device_t device);
 
+/* PL011 RX wait/wakeup contract; wait_prepare publishes the keyboard wait. */
+bool serial_rx_wait_prepare(void);
+void serial_rx_irq_disable(void);
+void serial_rx_irq_stats(uint64_t *interrupts, uint64_t *errors);
+
 void serial_go_to_sleep(void);
 #endif /* PRIVATE */
 

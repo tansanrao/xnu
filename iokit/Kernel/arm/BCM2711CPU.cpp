@@ -8,9 +8,9 @@
 
 #if defined(ARM64_BOARD_CONFIG_BCM2711)
 
-extern "C" void bcm2711_gic_init_cpu(void);
+#include <arm64/bcm2711_interrupt.h>
+
 extern "C" void bcm2711_gic_set_ipi_handler(ipi_handler_t handler);
-extern "C" void bcm2711_gic_send_ipi(uint32_t physical_cpu);
 extern "C" vm_offset_t reset_vector_vaddr;
 extern "C" vm_offset_t ml_io_map(vm_offset_t phys_addr, vm_size_t size);
 extern "C" void bcm2711_wait_for_all_cpus(void);

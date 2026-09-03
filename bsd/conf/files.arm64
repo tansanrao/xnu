@@ -23,3 +23,5 @@ bsd/dev/arm64/disassembler.c	optional config_dtrace
 bsd/dev/arm64/sdt_arm.c		optional config_dtrace
 
 bsd/kern/bsd_stubs.c		standard
+
+bsd/dev/arm/bcm2711_irq_test.c		standard
