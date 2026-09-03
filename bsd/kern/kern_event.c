@@ -290,19 +290,27 @@ extern const struct filterops pipe_rfiltops;
 extern const struct filterops pipe_wfiltops;
 extern const struct filterops ptsd_kqops;
 extern const struct filterops ptmx_kqops;
+#if SOCKETS
 extern const struct filterops soread_filtops;
 extern const struct filterops sowrite_filtops;
 extern const struct filterops sock_filtops;
 extern const struct filterops soexcept_filtops;
+#endif /* SOCKETS */
 extern const struct filterops spec_filtops;
+#if NETWORKING
 extern const struct filterops bpfread_filtops;
+#endif /* NETWORKING */
+#if NECP
 extern const struct filterops necp_fd_rfiltops;
+#endif /* NECP */
 #if SKYWALK
 extern const struct filterops skywalk_channel_rfiltops;
 extern const struct filterops skywalk_channel_wfiltops;
 extern const struct filterops skywalk_channel_efiltops;
 #endif /* SKYWALK */
+#if CONFIG_FSE
 extern const struct filterops fsevent_filtops;
+#endif /* CONFIG_FSE */
 extern const struct filterops vnode_filtops;
 extern const struct filterops tty_filtops;
 
@@ -372,13 +380,28 @@ static const struct filterops * const sysfilt_ops[EVFILTID_MAX] = {
 	[EVFILTID_PIPE_R]               = &pipe_rfiltops,
 	[EVFILTID_PIPE_W]               = &pipe_wfiltops,
 	[EVFILTID_PTSD]                 = &ptsd_kqops,
+#if SOCKETS
 	[EVFILTID_SOREAD]               = &soread_filtops,
 	[EVFILTID_SOWRITE]              = &sowrite_filtops,
 	[EVFILTID_SCK]                  = &sock_filtops,
 	[EVFILTID_SOEXCEPT]             = &soexcept_filtops,
+#else /* !SOCKETS */
+	[EVFILTID_SOREAD]               = &bad_filtops,
+	[EVFILTID_SOWRITE]              = &bad_filtops,
+	[EVFILTID_SCK]                  = &bad_filtops,
+	[EVFILTID_SOEXCEPT]             = &bad_filtops,
+#endif /* SOCKETS */
 	[EVFILTID_SPEC]                 = &spec_filtops,
+#if NETWORKING
 	[EVFILTID_BPFREAD]              = &bpfread_filtops,
+#else /* !NETWORKING */
+	[EVFILTID_BPFREAD]              = &bad_filtops,
+#endif /* NETWORKING */
+#if NECP
 	[EVFILTID_NECP_FD]              = &necp_fd_rfiltops,
+#else /* !NECP */
+	[EVFILTID_NECP_FD]              = &bad_filtops,
+#endif /* NECP */
 #if SKYWALK
 	[EVFILTID_SKYWALK_CHANNEL_W]    = &skywalk_channel_wfiltops,
 	[EVFILTID_SKYWALK_CHANNEL_R]    = &skywalk_channel_rfiltops,
@@ -388,7 +411,11 @@ static const struct filterops * const sysfilt_ops[EVFILTID_MAX] = {
 	[EVFILTID_SKYWALK_CHANNEL_R]    = &bad_filtops,
 	[EVFILTID_SKYWALK_CHANNEL_E]    = &bad_filtops,
 #endif /* !SKYWALK */
+#if CONFIG_FSE
 	[EVFILTID_FSEVENT]              = &fsevent_filtops,
+#else /* !CONFIG_FSE */
+	[EVFILTID_FSEVENT]              = &bad_filtops,
+#endif /* CONFIG_FSE */
 	[EVFILTID_VN]                   = &vnode_filtops,
 	[EVFILTID_TTY]                  = &tty_filtops,
 	[EVFILTID_PTMX]                 = &ptmx_kqops,

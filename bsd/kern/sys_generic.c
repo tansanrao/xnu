@@ -122,6 +122,7 @@
 
 #include <security/audit/audit.h>
 
+#if NETWORKING
 #include <net/if.h>
 #include <net/route.h>
 
@@ -137,6 +138,7 @@
 #include <netinet/tcp_timer.h>
 #include <netinet/tcp_var.h>
 #include <netinet/tcpip.h>
+#endif /* NETWORKING */
 /* for wait queue based select */
 #include <kern/waitq.h>
 #include <sys/vnode_internal.h>

@@ -5672,7 +5672,7 @@ sysctl_simultaneous_panic_test SYSCTL_HANDLER_ARGS
 	}
 }
 
-#if __arm64__ && (DEVELOPMENT || DEBUG)
+#if __arm64__ && (DEVELOPMENT || DEBUG) && CONFIG_XNUPOST
 #if CONFIG_SPTM
 extern void __attribute__((noreturn)) sptm_vs_xnu_panic_test(void);
 extern void __attribute__((noreturn)) xnu_vs_sptm_panic_test(void);
@@ -5716,7 +5716,7 @@ sysctl_panic_test SYSCTL_HANDLER_ARGS
 	return 0;
 }
 SYSCTL_PROC(_debug, OID_AUTO, panic_test, CTLFLAG_RW | CTLFLAG_LOCKED | CTLFLAG_MASKED, 0, 0, sysctl_panic_test, "I", "panic test");
-#endif /* __arm64__ && (DEVELOPMENT || DEBUG) */
+#endif /* __arm64__ && (DEVELOPMENT || DEBUG) && CONFIG_XNUPOST */
 
 extern unsigned int panic_test_failure_mode;
 SYSCTL_INT(_debug, OID_AUTO, xnu_panic_failure_mode, CTLFLAG_RW | CTLFLAG_LOCKED | CTLFLAG_KERN, &panic_test_failure_mode, 0, "panic/debugger test failure mode");

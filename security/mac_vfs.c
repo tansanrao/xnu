@@ -2681,9 +2681,9 @@ mac_vnode_label_associate_fdesc(struct mount *mp, struct fdescnode *fnp,
     struct vnode *vp, vfs_context_t ctx)
 {
 	struct fileproc *fp;
-#if CONFIG_MACF_SOCKET_SUBSET
+#if CONFIG_MACF_SOCKET_SUBSET && SOCKETS
 	struct socket *so;
-#endif
+#endif /* CONFIG_MACF_SOCKET_SUBSET && SOCKETS */
 	struct pipe *cpipe;
 	struct vnode *fvp;
 	struct proc *p;
@@ -2728,7 +2728,7 @@ mac_vnode_label_associate_fdesc(struct mount *mp, struct fdescnode *fnp,
 		}
 		(void)vnode_put(fvp);
 		break;
-#if CONFIG_MACF_SOCKET_SUBSET
+#if CONFIG_MACF_SOCKET_SUBSET && SOCKETS
 	case DTYPE_SOCKET:
 		so = (struct socket *)fp_get_data(fp);
 		socket_lock(so, 1);
@@ -2737,7 +2737,7 @@ mac_vnode_label_associate_fdesc(struct mount *mp, struct fdescnode *fnp,
 		    vp, mac_vnode_label(vp));
 		socket_unlock(so, 1);
 		break;
-#endif
+#endif /* CONFIG_MACF_SOCKET_SUBSET && SOCKETS */
 	case DTYPE_PSXSHM:
 		pshm_label_associate(fp, vp, ctx);
 		break;

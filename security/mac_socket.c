@@ -101,7 +101,7 @@ mac_socket_check_accept(kauth_cred_t cred, struct socket *so)
 	return error;
 }
 
-#if CONFIG_MACF_SOCKET_SUBSET
+#if CONFIG_MACF_SOCKET_SUBSET && SOCKETS
 int
 mac_socket_check_accepted(kauth_cred_t cred, struct socket *so)
 {
@@ -113,7 +113,7 @@ mac_socket_check_accepted(kauth_cred_t cred, struct socket *so)
 	if (!mac_socket_enforce) {
 		return 0;
 	}
-#endif
+#endif /* CONFIG_MACF_SOCKET_SUBSET && SOCKETS */
 
 	if (sock_getaddr((socket_t)so, &sockaddr, 1) != 0) {
 		error = ECONNABORTED;

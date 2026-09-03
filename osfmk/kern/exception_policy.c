@@ -126,7 +126,11 @@ ipc_is_valid_exception_port(
 	policy = ipc_space_policy(space);
 	maybe_exc_port_label = ipc_port_lock_label_get(maybe_exc_port);
 	maybe_exc_port_type = maybe_exc_port_label.io_type;
+#if CONFIG_SERVICE_PORT_INFO
 	bool exception_port_is_report_crash = ip_is_report_crash_service_port_locked(maybe_exc_port_label);
+#else
+	bool exception_port_is_report_crash = false;
+#endif
 	ip_mq_unlock_label_put(maybe_exc_port, &maybe_exc_port_label);
 
 	/* contained processes must abide by stricter subset of rules*/

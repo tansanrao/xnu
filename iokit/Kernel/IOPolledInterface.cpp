@@ -1057,6 +1057,10 @@ IOPolledFileRead(IOPolledFileIOVars * vars,
 	IOReturn    err = kIOReturnSuccess;
 	IOByteCount copy;
 
+#if !CRYPTO
+	(void)cryptvars;
+#endif
+
 //    bytesWritten += size;
 
 	do{
@@ -1078,9 +1082,11 @@ IOPolledFileRead(IOPolledFileIOVars * vars,
 //	vars->position += copy;
 
 		if ((vars->bufferOffset == vars->bufferLimit) && (vars->position < vars->readEnd)) {
+	#if CRYPTO
 			if (!vars->pollers->io) {
 				cryptvars = NULL;
 			}
+	#endif
 			err = IOPolledFilePollersIODone(vars->pollers, true);
 			if (kIOReturnSuccess != err) {
 				break;
@@ -1105,7 +1111,9 @@ IOPolledFileRead(IOPolledFileIOVars * vars,
 			}
 
 			uint32_t length;
+	#if CRYPTO
 			uint32_t lastReadLength = vars->lastRead;
+	#endif
 			uint64_t offset = (vars->position
 			    - vars->extentPosition + vars->currentExtent->start);
 			if (vars->extentRemaining <= vars->bufferSize) {

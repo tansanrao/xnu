@@ -5947,7 +5947,10 @@ static int
 linkat_internal(vfs_context_t ctx, int fd1, user_addr_t path, int fd2,
     user_addr_t link, int flag, enum uio_seg segflg)
 {
-	vnode_t vp, pvp, dvp, lvp;
+	vnode_t vp, dvp, lvp;
+#if CONFIG_FSE
+	vnode_t pvp;
+#endif
 	struct nameidata nd;
 	int follow;
 	int error;
@@ -13580,7 +13583,11 @@ unlock:
 		break;
 
 	case FSIOC_TEST_FSE_ACCESS_GRANTED:
+#if CONFIG_FSE
 		error = test_fse_access_granted(vp, (unsigned long)udata, ctx);
+#else
+		error = ENOTSUP;
+#endif /* CONFIG_FSE */
 		break;
 
 #if CONFIG_EXCLAVES

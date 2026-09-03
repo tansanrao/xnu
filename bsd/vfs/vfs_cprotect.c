@@ -348,16 +348,22 @@ cpx_key(const struct cpx *cpx)
 void
 cpx_set_aes_iv_key(struct cpx *cpx, void *iv_key)
 {
+#if CONFIG_PROTECT
 	if (cpx->cpx_iv_aes_ctx_ptr) {
 		aes_encrypt_key128(iv_key, cpx->cpx_iv_aes_ctx_ptr);
 		SET(cpx->cpx_flags, CPX_IV_AES_CTX_INITIALIZED | CPX_USE_OFFSET_FOR_IV);
 		CLR(cpx->cpx_flags, CPX_IV_AES_CTX_VFS);
 	}
+#else
+	(void)cpx;
+	(void)iv_key;
+#endif /* CONFIG_PROTECT */
 }
 
 aes_encrypt_ctx *
 cpx_iv_aes_ctx(struct cpx *cpx)
 {
+#if CONFIG_PROTECT
 	if (ISSET(cpx->cpx_flags, CPX_IV_AES_CTX_INITIALIZED)) {
 		return cpx->cpx_iv_aes_ctx_ptr;
 	}
@@ -379,6 +385,10 @@ cpx_iv_aes_ctx(struct cpx *cpx)
 	SET(cpx->cpx_flags, CPX_IV_AES_CTX_VFS);
 
 	return cpx->cpx_iv_aes_ctx_ptr;
+#else
+	(void)cpx;
+	return NULL;
+#endif /* CONFIG_PROTECT */
 }
 
 void

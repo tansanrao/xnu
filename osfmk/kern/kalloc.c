@@ -2555,7 +2555,7 @@ kalloc_ext(
 	}
 }
 
-#if XNU_PLATFORM_MacOSX
+#if XNU_PLATFORM_MacOSX || IOKIT
 void *
 kalloc_external(vm_size_t size);
 void *
@@ -2564,7 +2564,7 @@ kalloc_external(vm_size_t size)
 	zalloc_flags_t flags = Z_VM_TAG_BT(Z_WAITOK, VM_KERN_MEMORY_KALLOC);
 	return kheap_alloc(KHEAP_DEFAULT, size, flags);
 }
-#endif /* XNU_PLATFORM_MacOSX */
+#endif /* XNU_PLATFORM_MacOSX || IOKIT */
 
 void *
 kalloc_data_external(vm_size_t size, zalloc_flags_t flags);
@@ -2953,7 +2953,7 @@ kfree_addr_ext(kalloc_heap_t kheap, void *data)
 	}
 }
 
-#if XNU_PLATFORM_MacOSX
+#if XNU_PLATFORM_MacOSX || IOKIT
 void
 kfree_external(void *addr, vm_size_t size);
 void
@@ -2963,7 +2963,7 @@ kfree_external(void *addr, vm_size_t size)
 
 	kfree_ext(kheap, addr, size);
 }
-#endif /* XNU_PLATFORM_MacOSX */
+#endif /* XNU_PLATFORM_MacOSX || IOKIT */
 
 void
 (kheap_free_bounded)(kalloc_heap_t kheap, void *addr,
@@ -3508,7 +3508,7 @@ kheap_startup_init(kalloc_heap_t kheap)
 
 #pragma mark IOKit/libkern helpers
 
-#if XNU_PLATFORM_MacOSX
+#if XNU_PLATFORM_MacOSX || IOKIT
 
 void *
 kern_os_malloc_external(size_t size);
@@ -3555,7 +3555,7 @@ kern_os_realloc_external(void *addr, size_t nsize)
 	return __kheap_realloc(KERN_OS_MALLOC, addr, osize - oob_offs, nsize, flags, NULL);
 }
 
-#endif /* XNU_PLATFORM_MacOSX */
+#endif /* XNU_PLATFORM_MacOSX || IOKIT */
 
 void
 kern_os_zfree(zone_t zone, void *addr, vm_size_t size)

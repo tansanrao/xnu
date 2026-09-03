@@ -127,6 +127,7 @@ ccdrbg.o_INCFLAGS += -I${SRCROOT}/EXTERNAL_HEADERS/corecrypto
 ccgcm.o_INCFLAGS += -I${SRCROOT}/EXTERNAL_HEADERS/corecrypto
 ccmode_gcm_gf_mult.o_INCFLAGS += -I${SRCROOT}/EXTERNAL_HEADERS/corecrypto
 ccmode_gcm_mult_h.o_INCFLAGS += -I${SRCROOT}/EXTERNAL_HEADERS/corecrypto
+bearssl_prng.o_INCFLAGS += -I${SRCROOT}/../bearssl/inc -I${SRCROOT}/libkern/crypto
 
 #
 # Enforce semantic types

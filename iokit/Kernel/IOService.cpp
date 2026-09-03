@@ -4826,7 +4826,9 @@ IOServicePH::systemPowerChange(uint8_t newState,
 	case kIOServiceSystemStateOffPhase2:
 
 		if (fSystemState == kIOServiceSystemStateAOT) {
+#if NETWORKING
 			IOPMNetworkStackWillSleepFromAOT();
+#endif /* NETWORKING */
 		}
 
 		lock();

@@ -136,6 +136,9 @@ OSUnserialize.cpo_CXXWARNFLAGS_ADD += -Wno-zero-as-null-pointer-constant
 OSUnserializeXML.cpo_CXXWARNFLAGS_ADD += -Wno-zero-as-null-pointer-constant
 
 # Rebuild if per-file overrides change
+bearssl_digest.o_INCFLAGS += -I${SRCROOT}/../bearssl/inc
+bearssl_rand.o_INCFLAGS += -I${SRCROOT}/../bearssl/inc
+
 ${OBJS}: $(firstword $(MAKEFILE_LIST))
 
 # Rebuild if global compile flags change

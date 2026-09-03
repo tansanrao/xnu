@@ -385,7 +385,7 @@ struct zone {
 	spl_t               z_kasan_spl;
 #endif
 
-#if ZONE_ENABLE_LOGGING || CONFIG_ZLEAKS || KASAN_TBI
+#if ZALLOC_ENABLE_LOGGING || CONFIG_ZLEAKS || KASAN_TBI
 	/*
 	 * the allocation logs are used when:
 	 *
@@ -477,7 +477,8 @@ typedef struct zone_security_flags {
 /*
  * Zsecurity config to enable kalloc type segregation
  */
-#if XNU_TARGET_OS_WATCH || KASAN_CLASSIC
+/* Standalone Darwin has fewer type signatures than Apple product kernels. */
+#if XNU_TARGET_OS_WATCH || KASAN_CLASSIC || XNU_PLATFORM_Darwin
 #   define ZSECURITY_CONFIG_KT_BUDGET                   120
 #   define ZSECURITY_CONFIG_KT_VAR_BUDGET               6
 #else

@@ -2068,8 +2068,10 @@ task_deallocate_internal(
 	/* let iokit know 2 */
 	iokit_task_terminate(task, 2);
 
+#if MACH_KDP
 	/* Unregister task from userspace coredumps on panic */
 	kern_unregister_userspace_coredump(task);
+#endif /* MACH_KDP */
 
 	if (task->affinity_space) {
 		task_affinity_deallocate(task);
@@ -4456,7 +4458,9 @@ task_pidsuspend(
 
 	if ((KERN_SUCCESS == kr) && task->message_app_suspended) {
 		iokit_task_app_suspended_changed(task);
+#if CONFIG_DEFERRED_RECLAIM
 		vm_deferred_reclamation_task_suspend(task);
+#endif
 	}
 
 	return kr;

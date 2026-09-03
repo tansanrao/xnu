@@ -79,14 +79,14 @@
 #include <security/mac_policy.h>
 #endif
 
+#include <IOKit/IOBSD.h>
+
+#if CONFIG_AUDIT
+
 #include <net/route.h>
 
 #include <netinet/in.h>
 #include <netinet/in_pcb.h>
-
-#include <IOKit/IOBSD.h>
-
-#if CONFIG_AUDIT
 
 #define IS_NOT_VALID_PID(p)     ((p) < 1 || (p) > PID_MAX)
 

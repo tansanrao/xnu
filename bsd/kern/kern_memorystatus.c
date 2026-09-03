@@ -6392,6 +6392,7 @@ static int
 networking_memstatus_callout(proc_t p, uint32_t status)
 {
 	struct fileproc *fp;
+	(void)status;
 
 	/*
 	 * proc list lock NOT held
@@ -6452,7 +6453,9 @@ memorystatus_kill_proc(proc_t p, uint32_t cause, os_reason_t jetsam_reason, bool
 		uint64_t num_pages_reclaimed = 0;
 		uint64_t num_pages_unsecluded = 0;
 
+#if SOCKETS
 		networking_memstatus_callout(p, cause);
+#endif /* SOCKETS */
 		num_pages_purged = vm_purgeable_purge_task_owned(proc_task(p));
 		num_pages_reclaimed += num_pages_purged;
 #if CONFIG_SECLUDED_MEMORY

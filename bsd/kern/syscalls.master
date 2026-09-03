@@ -830,7 +830,11 @@
 523	AUE_NULL	ALL	{ int enosys(void); }
 #endif /* NECP */
 524	AUE_SETATTRLISTAT	ALL	{ int setattrlistat(int fd, const char *path, struct attrlist *alist, void *attributeBuffer, size_t bufferSize, uint32_t options); }
+#if NETWORKING
 525	AUE_NET		ALL	{ int net_qos_guideline(struct net_qos_param *param, uint32_t param_len); }
+#else
+525	AUE_NULL	ALL	{ int enosys(void); }
+#endif /* NETWORKING */
 526	AUE_FMOUNT	ALL	{ int fmount(const char *type, int fd, int flags, void *data); }
 527	AUE_NULL	ALL	{ int ntp_adjtime(struct timex *tp); }
 528	AUE_NULL	ALL	{ int ntp_gettime(struct ntptimeval *ntvp); }

@@ -3440,14 +3440,16 @@ vm_compressor_process_special_swapped_in_segments_locked(void)
 
 #if XNU_TARGET_OS_OSX
 	special_swappedin_list_head = &c_early_swappedin_list_head;
-#else /* XNU_TARGET_OS_OSX */
+#elif CONFIG_JETSAM
 	if (memorystatus_swap_all_apps) {
 		special_swappedin_list_head = &c_late_swappedin_list_head;
 	} else {
 		/* called on unsupported config*/
 		return;
 	}
-#endif /* XNU_TARGET_OS_OSX */
+#else
+	return;
+#endif /* XNU_TARGET_OS_OSX / CONFIG_JETSAM */
 
 	KDBG(VM_COMPRESSOR_EVENTID(DBG_COMPACT_SPECIAL) | DBG_FUNC_START,
 	    c_early_swappedin_count, c_late_swappedin_count);
@@ -4512,13 +4514,15 @@ c_seg_allocate(c_segment_t *current_chead, bool *nearing_limits)
 		for (int i = 0; i < vm_pageout_state.vm_compressor_thread_count; i++) {
 #if XNU_TARGET_OS_OSX /* tag:DONATE */
 			donate_queue_head = (c_segment_t*) &(pgo_iothread_internal_state[i].current_early_swapout_chead);
-#else /* XNU_TARGET_OS_OSX */
+#elif CONFIG_JETSAM
 			if (memorystatus_swap_all_apps) {
 				donate_queue_head = (c_segment_t*) &(pgo_iothread_internal_state[i].current_late_swapout_chead);
 			} else {
 				donate_queue_head = NULL;
 			}
-#endif /* XNU_TARGET_OS_OSX */
+#else
+			donate_queue_head = NULL;
+#endif /* XNU_TARGET_OS_OSX / CONFIG_JETSAM */
 
 			if (current_chead == donate_queue_head) {
 				c_seg->c_has_donated_pages = 1;

@@ -100,7 +100,9 @@ TUNABLE(SInt64, gIODKDebug, "dk", kIODKEnable);
 #if DEBUG || DEVELOPMENT
 uint64_t driverkit_checkin_timed_out = 0;
 TUNABLE(bool, disable_dext_crash_reboot, "disable_dext_crash_reboot", 0);
+#if MACH_KDP
 extern "C" kern_return_t kern_register_userspace_coredump(task_t task, const char * name, boolean_t emergency);
+#endif /* MACH_KDP */
 #endif /* DEBUG || DEVELOPMENT */
 
 extern bool restore_boot;
@@ -2759,7 +2761,7 @@ IOUserServer::kill(const char * reason)
 void
 IOUserServer::emergencyPanicCoreDumpEnable()
 {
-#if DEVELOPMENT || DEBUG
+#if (DEVELOPMENT || DEBUG) && MACH_KDP
 	if (isPlatformDriver()) {
 		// Enable coredump for the first party dext that is causing an imminent panic
 		// This is enabled on non-release without requiring an entitlement,
@@ -2768,7 +2770,7 @@ IOUserServer::emergencyPanicCoreDumpEnable()
 		snprintf(core_name, sizeof(core_name), "dext-%d", pid_from_task(fOwningTask));
 		kern_register_userspace_coredump(fOwningTask, core_name, TRUE);
 	}
-#endif /* DEVELOPMENT || DEBUG */
+#endif /* (DEVELOPMENT || DEBUG) && MACH_KDP */
 }
 
 OSObjectUserVars *

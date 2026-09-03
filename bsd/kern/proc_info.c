@@ -2736,7 +2736,7 @@ pid_socketinfo(socket_t so, struct fileproc *fp, proc_t proc, user_addr_t  buffe
 	}
 	return error;
 #else
-#pragma unused(so, fp, proc, fd, buffer)
+#pragma unused(so, fp, proc, buffer)
 	*retval = 0;
 	return ENOTSUP;
 #endif
@@ -2833,7 +2833,7 @@ pid_channelinfo(struct kern_channel * chan, struct fileproc *fp, proc_t proc, us
 	}
 	return error;
 #else
-#pragma unused(chan, fp, proc, fd, buffer)
+#pragma unused(chan, fp, proc, buffer)
 	*retval = 0;
 	return ENOTSUP;
 #endif

@@ -4,6 +4,7 @@
 #include <corecrypto/ccdigest.h>
 
 
+#if !CONFIG_CRYPTO_BEARSSL
 static uint64_t
 getCount(SHA1_CTX *ctx)
 {
@@ -76,6 +77,7 @@ SHA1Final_r(SHA1_CTX *context, void *digest)
 {
 	SHA1Final(digest, context);
 }
+#endif /* !CONFIG_CRYPTO_BEARSSL: the hardware-hook ABI below is shared. */
 
 
 /*

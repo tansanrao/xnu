@@ -1263,7 +1263,9 @@ parse_machfile(
 	proc_t                  p = vfs_context_proc(imgp->ip_vfs_context);
 	int                     error;
 	int                     resid = 0;
+#if CONFIG_CODE_DECRYPTION
 	int                     spawn = (imgp->ip_flags & IMGPF_SPAWN);
+#endif
 	size_t                  mach_header_sz = sizeof(struct mach_header);
 	boolean_t               abi64;
 	boolean_t               got_code_signatures = FALSE;
@@ -3435,6 +3437,7 @@ load_dylinker(
 	 */
 
 	if (use_alt_dyld) {
+#if CONFIG_PROC_UUID_POLICY
 		int policy_error;
 		uint32_t policy_flags = 0;
 		int32_t policy_gencount = 0;
@@ -3445,6 +3448,7 @@ load_dylinker(
 				name = dyld_alt_path;
 			}
 		}
+#endif /* CONFIG_PROC_UUID_POLICY */
 	} else if (use_dyld_suffix) {
 		size_t i = 0;
 
@@ -3612,6 +3616,7 @@ load_rosetta(
 	if (imgp->ip_flags & IMGPF_ALT_ROSETTA) {
 		use_alt_rosetta = true;
 	} else {
+#if CONFIG_PROC_UUID_POLICY
 		int policy_error;
 		uint32_t policy_flags = 0;
 		int32_t policy_gencount = 0;
@@ -3619,6 +3624,7 @@ load_rosetta(
 		if (policy_error == 0 && (policy_flags & PROC_UUID_ALT_ROSETTA_POLICY) != 0) {
 			use_alt_rosetta = true;
 		}
+#endif /* CONFIG_PROC_UUID_POLICY */
 	}
 
 	if (use_alt_rosetta) {

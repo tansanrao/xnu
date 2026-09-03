@@ -167,7 +167,7 @@ ZONE_DEFINE_TYPE(percpu_u64_zone, "percpu.64", uint64_t,
 #define ZONE_MAX_CHUNK_ALLOC_NUM        (10)
 #endif /* ZSECURITY_CONFIG(SAD_FENG_SHUI) */
 
-#if   XNU_PLATFORM_MacOSX
+#if XNU_PLATFORM_MacOSX
 #define ZONE_MAP_MAX            (32ULL << 30)
 #define ZONE_MAP_VA_SIZE        (128ULL << 30)
 #else
@@ -3222,11 +3222,13 @@ zone_leaks_record_count(zone_t z)
 	return MIN(MAX(recs, ZRECORDS_DEFAULT), ZRECORDS_MAX);
 }
 
+#if CONFIG_ZLEAKS
 static uint32_t
 zone_leaks_sample_rate(zone_t z)
 {
 	return zlfreq / zone_elem_inner_size(z);
 }
+#endif /* CONFIG_ZLEAKS */
 
 #if ZALLOC_ENABLE_LOGGING
 /* Log allocations and frees to help debug a zone element corruption */
@@ -10312,6 +10314,7 @@ zone_early_mem_init(vm_size_t size)
  */
 static bool any_zone_test_running = FALSE;
 
+#if CONFIG_ZLEAKS
 static uintptr_t *
 zone_copy_allocations(zone_t z, uintptr_t *elems, zone_pva_t page_index)
 {
@@ -10351,10 +10354,12 @@ zone_copy_allocations(zone_t z, uintptr_t *elems, zone_pva_t page_index)
 	}
 	return elems;
 }
+#endif /* CONFIG_ZLEAKS */
 
 kern_return_t
 zone_leaks(const char * zoneName, uint32_t nameLen, leak_site_proc proc)
 {
+#if CONFIG_ZLEAKS
 	zone_t        zone = NULL;
 	uintptr_t *   array;
 	uintptr_t *   next;
@@ -10430,6 +10435,12 @@ zone_leaks(const char * zoneName, uint32_t nameLen, leak_site_proc proc)
 
 	kfree_type(vm_offset_t, maxElems, array);
 	return KERN_SUCCESS;
+#else
+	(void)zoneName;
+	(void)nameLen;
+	(void)proc;
+	return KERN_NOT_SUPPORTED;
+#endif /* CONFIG_ZLEAKS */
 }
 
 static int

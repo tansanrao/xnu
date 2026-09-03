@@ -108,8 +108,8 @@ osfmk/arm/status_shared.c	standard
 osfmk/arm/commpage/commpage.c	standard
 osfmk/arm/commpage/commpage_asm.s	optional config_arm_pfz
 
-osfmk/kdp/ml/arm/kdp_machdep.c	optional	mach_kdp
-osfmk/kdp/ml/arm/kdp_vm.c	optional	mach_kdp
+osfmk/kdp/ml/arm/kdp_machdep.c	standard
+osfmk/kdp/ml/arm/kdp_vm.c	standard
 
 osfmk/arm64/hibernate_arm64.c        optional hibernation
 osfmk/arm64/hibernate_restore.c      optional hibernation

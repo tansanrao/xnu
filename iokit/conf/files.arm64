@@ -5,4 +5,5 @@ iokit/Kernel/IOPMrootDomain.cpp    					optional iokitcpp
 
 # SMP
 iokit/Kernel/arm/AppleARMSMP.cpp    					optional iokitcpp
-
+iokit/Kernel/arm/BCM2711PlatformExpert.cpp			optional iokitcpp
+iokit/Kernel/arm/BCM2711CPU.cpp					optional iokitcpp

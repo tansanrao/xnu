@@ -200,6 +200,10 @@ extern void bsd_scale_setup(int);
 extern unsigned int semaphore_max;
 extern void stackshot_init(void);
 
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+extern void bcm2711_wait_for_all_cpus(void);
+#endif
+
 /*
  *	Running in virtual memory, on the interrupt stack.
  */
@@ -861,6 +865,7 @@ kernel_bootstrap_thread(void)
 	csm_initialize_provisioning_profiles();
 #endif
 
+#if CONFIG_IMG4
 	kernel_bootstrap_log("trust_cache_init");
 
 	/* Initialize the runtime for the trust cache interface */
@@ -868,6 +873,7 @@ kernel_bootstrap_thread(void)
 
 	/* Load the static and engineering trust caches */
 	load_static_trust_cache();
+#endif
 
 	kernel_startup_initialize_upto(STARTUP_SUB_LOCKDOWN);
 
@@ -913,6 +919,10 @@ kernel_bootstrap_thread(void)
 
 #if KPERF
 	kperf_init_early();
+#endif
+
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+	bcm2711_wait_for_all_cpus();
 #endif
 
 	/*

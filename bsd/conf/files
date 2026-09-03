@@ -224,7 +224,7 @@ bsd/net/pktap.c				optional networking bound-checks
 bsd/net/droptap.c			optional networking bound-checks
 bsd/net/if_llreach.c          		optional networking bound-checks
 bsd/net/flowhash.c			optional networking bound-checks
-bsd/net/siphash.c			optional networking bound-checks
+bsd/net/siphash.c			standard bound-checks
 bsd/net/flowadv.c			optional networking bound-checks
 bsd/net/content_filter.c		optional content_filter bound-checks
 bsd/net/content_filter_crypto.c         optional content_filter bound-checks
@@ -380,6 +380,7 @@ bsd/security/audit/audit_syscalls.c		standard
 bsd/security/audit/audit_worker.c		optional config_audit
 
 bsd/pthread/pthread_shims.c		standard
+bsd/pthread/pthread_static.c		optional config_pthread_static
 bsd/pthread/pthread_priority.c		standard
 bsd/pthread/pthread_workqueue.c		standard
 

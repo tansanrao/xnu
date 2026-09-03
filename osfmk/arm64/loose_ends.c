@@ -1093,14 +1093,6 @@ abort(void)
 }
 
 
-#if !MACH_KDP
-void
-kdp_register_callout(kdp_callout_fn_t fn, void *arg)
-{
-#pragma unused(fn,arg)
-}
-#endif
-
 /*
  * Get a quick virtual mapping of a physical page and run a callback on that
  * page's virtual address.

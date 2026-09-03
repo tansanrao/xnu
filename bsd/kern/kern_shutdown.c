@@ -88,9 +88,9 @@ static void proc_shutdown(int only_non_dext);
 static void zprint_panic_info(void);
 extern void halt_log_enter(const char * what, const void * pc, uint64_t time);
 
-#if DEVELOPMENT || DEBUG
+#if (DEVELOPMENT || DEBUG) && MACH_KDP
 extern boolean_t kdp_has_polled_corefile(void);
-#endif /* DEVELOPMENT || DEBUG */
+#endif /* (DEVELOPMENT || DEBUG) && MACH_KDP */
 
 struct sd_filterargs {
 	int delayterm;
@@ -273,9 +273,9 @@ reboot_kernel(int howto, char *message)
 		 * Unmount filesystems
 		 */
 
-#if DEVELOPMENT || DEBUG
+#if (DEVELOPMENT || DEBUG) && MACH_KDP
 		if (!(howto & RB_PANIC) || !kdp_has_polled_corefile())
-#endif /* DEVELOPMENT || DEBUG */
+#endif /* (DEVELOPMENT || DEBUG) && MACH_KDP */
 		{
 #if CONFIG_COREDUMP || CONFIG_UCOREDUMP
 			/* Disable user space core dump before unmounting non-system volume so
@@ -293,9 +293,9 @@ reboot_kernel(int howto, char *message)
 		proc_shutdown(FALSE);
 		halt_log_enter("proc_shutdown", 0, mach_absolute_time() - startTime);
 
-#if DEVELOPMENT || DEBUG
+#if (DEVELOPMENT || DEBUG) && MACH_KDP
 		if (!(howto & RB_PANIC) || !kdp_has_polled_corefile())
-#endif /* DEVELOPMENT || DEBUG */
+#endif /* (DEVELOPMENT || DEBUG) && MACH_KDP */
 		{
 			startTime = mach_absolute_time();
 			vfs_unmountall(FALSE);

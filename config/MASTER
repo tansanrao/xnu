@@ -77,6 +77,7 @@ options		SYSV_SEM	# SVID semaphores		# <sysv_sem>
 options		SYSV_MSG	# SVID messages			# <sysv_msg>
 options		SYSV_SHM	# SVID shared mem		# <sysv_shm>
 options		PSYNCH		# pthread synch			# <psynch>
+options		CONFIG_PTHREAD_STATIC	# statically linked pthread component	# <config_pthread_static>
 options		FLOW_DIVERT								# <flow_divert>
 options		NECP									# <necp>
 options		CONTENT_FILTER	#						# <content_filter>
@@ -96,7 +97,7 @@ options     SECURE_KERNEL       # <secure_kernel>
 #
 #	4.4 general kernel
 #
-options		SOCKETS		# socket support		# <inet>
+options		SOCKETS		# socket support		# <inet,sockets>
 options 	DIAGNOSTIC	# diagnostics			# <diagnostic>
 options		PROFILE		# kernel profiling		# <profile>
 options		SENDFILE	# sendfile					# <sendfile>
@@ -170,6 +171,7 @@ pseudo-device   stf 	1 				# <stf>
 
 options			CRYPTO				# <ipsec,crypto>
 options			CRYPTO_SHA2			# <crypto_sha2>
+options			CONFIG_CRYPTO_BEARSSL	# standalone digest and random provider # <config_crypto_bearssl>
 options			ENCRYPTED_SWAP			# <encrypted_swap>
 
 options			CONFIG_IMG4			# <config_img4>

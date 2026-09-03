@@ -43,7 +43,7 @@
 
 __BEGIN_DECLS
 
-#if XNU_PLATFORM_MacOSX
+#if XNU_PLATFORM_MacOSX || IOKIT
 
 /*!
  * @header
@@ -282,7 +282,7 @@ extern void OSFree(
 	uint32_t    size,
 	OSMallocTag tag);
 
-#endif /* XNU_PLATFORM_MacOSX */
+#endif /* XNU_PLATFORM_MacOSX || IOKIT */
 
 __END_DECLS
 

@@ -3819,7 +3819,9 @@ thread_dispatch(
 			 * kperf's running timer is active whenever the idle thread for a
 			 * CPU is not running.
 			 */
+#if KPERF
 			kperf_running_setup(processor, processor->last_dispatch);
+#endif /* KPERF */
 		}
 		running_timers_activate(processor);
 		processor->first_timeslice = TRUE;

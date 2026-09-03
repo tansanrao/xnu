@@ -27,6 +27,16 @@
  */
 
 #include <kern/debug.h>
+#include <sys/mcache.h>
+
+#if !SOCKETS
+int
+assfail(const char *assertion, const char *file, int line)
+{
+	panic("Assertion failed: (%s), function unknown, file %s, line %d.",
+	    assertion, file, line);
+}
+#endif /* !SOCKETS */
 
 #if !NETWORKING
 
@@ -135,7 +145,6 @@ STUB(ifnet_output_raw);
 STUB(ifnet_reference);
 STUB(ifnet_release);
 STUB(ifnet_remove_multicast);
-STUB(ifnet_resolve_multicast);
 STUB(ifnet_set_addrlen);
 STUB(ifnet_set_baudrate);
 STUB(ifnet_set_capabilities_enabled);
@@ -164,10 +173,6 @@ STUB(ifnet_stat_increment_out);
 STUB(ifnet_touch_lastchange);
 STUB(ifnet_type);
 STUB(ifnet_unit);
-STUB(in_cksum);
-STUB(inet_arp_handle_input);
-STUB(inet_arp_init_ifaddr);
-STUB(inet_arp_lookup);
 STUB(ipf_addv4);
 STUB(ipf_addv6);
 STUB(ipf_inject_input);
@@ -341,7 +346,6 @@ STUB(ifnet_inet_defrouter_llreachinfo);
 STUB(ifnet_input_extended);
 STUB(ifnet_latencies);
 STUB(ifnet_link_quality);
-STUB(ifnet_notice_master_elected);
 STUB(ifnet_notice_primary_elected);
 STUB(ifnet_notice_node_absence);
 STUB(ifnet_notice_node_presence);
@@ -383,8 +387,6 @@ STUB(inaddr_local);
 STUB(inp_clear_INP_INADDR_ANY);
 STUB(ip_gre_output);
 STUB(m_cat);
-STUB(m_free);
-STUB(m_freem);
 STUB(m_get);
 STUB(m_gethdr);
 STUB(m_mtod);
@@ -396,27 +398,19 @@ STUB(mbuf_get_unsent_data_bytes);
 STUB(mbuf_get_buffer_status);
 STUB(mbuf_pkt_new_flow);
 STUB(mbuf_last_pkt);
-STUB(mbuf_get_priority);
 STUB(mbuf_get_service_class);
 STUB(mbuf_get_service_class_index);
 STUB(mbuf_get_service_class_max_count);
 STUB(mbuf_get_traffic_class_index);
 STUB(mbuf_get_traffic_class_max_count);
-STUB(mbuf_is_service_class_privileged);
 STUB(mbuf_pkthdr_aux_flags);
 STUB(mcl_to_paddr);
-STUB(net_add_domain);
 STUB(net_add_domain_old);
-STUB(net_add_proto);
 STUB(net_add_proto_old);
-STUB(net_del_domain);
 STUB(net_del_domain_old);
-STUB(net_del_proto);
 STUB(net_del_proto_old);
 STUB(net_domain_contains_hostname);
-STUB(pffinddomain);
 STUB(pffinddomain_old);
-STUB(pffindproto);
 STUB(pffindproto_old);
 STUB(pktap_input_packet);
 STUB(pktap_output_packet);
@@ -495,7 +489,7 @@ STUB(vsock_put_message);
  */
 void mbuf_drain(boolean_t);
 void
-mbuf_drain(boolean_t)
+mbuf_drain(boolean_t ignore_waiters __unused)
 {
 	return;
 }

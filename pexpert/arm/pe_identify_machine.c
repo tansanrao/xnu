@@ -184,8 +184,14 @@ pe_arm_get_soc_base_phys(void)
 extern void     fleh_fiq_generic(void);
 
 vm_offset_t     gPicBase;
+vm_offset_t     gPicCPUBase;
 vm_offset_t     gTimerBase;
 vm_offset_t     gSocPhys;
+
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+extern void bcm2711_gic_init(vm_offset_t distributor_base,
+    vm_offset_t cpu_interface_base);
+#endif
 
 static uint32_t
 pe_arm_map_interrupt_controller(void)
@@ -208,12 +214,25 @@ pe_arm_map_interrupt_controller(void)
 		SecureDTGetProperty(entryP, "reg", (void const **)&reg_prop, &prop_size);
 		gPicBase = ml_io_map(soc_phys + *reg_prop, *(reg_prop + 1));
 		kprintf("pe_arm_map_interrupt_controller: gPicBase: 0x%lx\n", (unsigned long)gPicBase);
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+		if (SecureDTGetProperty(entryP, "cpu-reg",
+		    (void const **)&reg_prop, &prop_size) == kSuccess) {
+			gPicCPUBase = ml_io_map(soc_phys + *reg_prop, *(reg_prop + 1));
+		}
+#endif
 	}
 	if (gPicBase == 0) {
 		kprintf("pe_arm_map_interrupt_controller: failed to find the interrupt-controller.\n");
 		return 0;
 	}
 
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+	if (gPicCPUBase == 0) {
+		printf("BCM2711: failed to map the GIC CPU interface\n");
+		return 0;
+	}
+	return 1;
+#else
 	if (SecureDTFindEntry("device_type", "timer", &entryP) == kSuccess) {
 		kprintf("pe_arm_map_interrupt_controller: found timer\n");
 		SecureDTGetProperty(entryP, "reg", (void const **)&reg_prop, &prop_size);
@@ -226,6 +245,7 @@ pe_arm_map_interrupt_controller(void)
 	}
 
 	return 1;
+#endif
 }
 
 uint32_t
@@ -238,6 +258,9 @@ pe_arm_init_interrupts(void *args)
 		if (!pe_arm_map_interrupt_controller()) {
 			return 0;
 		}
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+		bcm2711_gic_init(gPicBase, gPicCPUBase);
+#endif
 	}
 
 	return pe_arm_init_timer(args);

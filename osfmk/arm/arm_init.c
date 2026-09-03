@@ -188,9 +188,9 @@ SECURITY_READ_ONLY_LATE(bool) serial_console_enabled = false;
 static SECURITY_READ_ONLY_LATE(bool) enable_sme = true;
 #endif
 
-#if APPLEVIRTUALPLATFORM
+#if APPLEVIRTUALPLATFORM || defined(ARM64_BOARD_CONFIG_BCM2711)
 SECURITY_READ_ONLY_LATE(vm_offset_t) reset_vector_vaddr = 0;
-#endif /* APPLEVIRTUALPLATFORM */
+#endif /* APPLEVIRTUALPLATFORM || ARM64_BOARD_CONFIG_BCM2711 */
 
 /*
  * Forward definition
@@ -364,9 +364,9 @@ arm_init(
 	const_boot_args = *args;
 	BootArgs = args = &const_boot_args;
 
-#if APPLEVIRTUALPLATFORM
+#if APPLEVIRTUALPLATFORM || defined(ARM64_BOARD_CONFIG_BCM2711)
 	reset_vector_vaddr = (vm_offset_t) &LowResetVectorBase;
-#endif /* APPLEVIRTUALPLATFORM */
+#endif /* APPLEVIRTUALPLATFORM || ARM64_BOARD_CONFIG_BCM2711 */
 
 	cpu_data_init(&BootCpuData);
 #if defined(HAS_APPLE_PAC)
@@ -425,6 +425,9 @@ arm_init(
 		/*
 		 * Select the advertised kernel page size.
 		 */
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+		PAGE_SHIFT_CONST = ARM_PGSHIFT;
+#else
 		if (args->memSize > 1ULL * 1024 * 1024 * 1024) {
 			/*
 			 * arm64 device with > 1GB of RAM:
@@ -439,6 +442,7 @@ arm_init(
 			 */
 			PAGE_SHIFT_CONST = ARM_PGSHIFT;
 		}
+#endif
 
 		/* 32-bit apps always see 16KB page size */
 		page_shift_user32 = PAGE_MAX_SHIFT;

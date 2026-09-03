@@ -1972,7 +1972,9 @@ mach_vm_deferred_reclamation_buffer_allocate(
 #else
 	(void) task;
 	(void) address;
-	(void) size;
+	(void) next_deadline;
+	(void) initial_capacity;
+	(void) max_capacity;
 	return KERN_NOT_SUPPORTED;
 #endif /* CONFIG_DEFERRED_RECLAIM */
 }
@@ -2004,6 +2006,8 @@ mach_vm_deferred_reclamation_buffer_flush(
 #else
 	(void) task;
 	(void) num_entries_to_reclaim;
+	(void) bytes_reclaimed_out;
+	(void) next_deadline_out;
 	return KERN_NOT_SUPPORTED;
 #endif /* CONFIG_DEFERRED_RECLAIM */
 }
@@ -2033,7 +2037,9 @@ mach_vm_deferred_reclamation_buffer_resize(task_t task,
 	return err;
 #else
 	(void) task;
-	(void) size;
+	(void) new_len;
+	(void) bytes_reclaimed_out;
+	(void) next_deadline_out;
 	return KERN_NOT_SUPPORTED;
 #endif /* CONFIG_DEFERRED_RECLAIM */
 }

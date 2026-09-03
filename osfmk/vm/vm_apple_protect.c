@@ -1182,6 +1182,7 @@ apple_protect_pager_create(
 	return pager;
 }
 
+#if CONFIG_CODE_DECRYPTION
 /*
  * apple_protect_pager_setup()
  *
@@ -1370,6 +1371,7 @@ apple_protect_pager_setup(
 
 	return (memory_object_t) pager;
 }
+#endif /* CONFIG_CODE_DECRYPTION */
 
 void
 apple_protect_pager_trim(void)

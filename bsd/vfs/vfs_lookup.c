@@ -947,14 +947,18 @@ lookup_authorize_search(vnode_t dp, struct componentname *cnp, int dp_authorized
 
 	if (!dp_authorized_in_cache) {
 		/* Skip search authorization for resource fork access on regular files */
+#if NAMEDRSRCFORK
 		if (vnode_isreg(dp) && (cnp->cn_flags & CN_ALLOWRSRCFORK)) {
 			/* Resource fork access on regular files doesn't require search permissions */
 		} else {
+#endif
 			error = vnode_authorize(dp, NULL, KAUTH_VNODE_SEARCH, ctx);
 			if (error) {
 				return error;
 			}
+#if NAMEDRSRCFORK
 		}
+#endif
 	}
 #if CONFIG_MACF
 	error = mac_vnode_check_lookup(ctx, dp, cnp);
@@ -1634,7 +1638,11 @@ unionlookup:
 #endif /* CONFIG_UNION_MOUNTS */
 	ndp->ni_vp = NULLVP;
 
+#if NAMEDRSRCFORK
 	if (dp->v_type != VDIR && !(cnp->cn_flags & CN_WANTSRSRCFORK)) {
+#else
+	if (dp->v_type != VDIR) {
+#endif
 #if CONFIG_MACF
 		/*
 		 * Prevent the information disclosure on the vnode
@@ -2075,7 +2083,11 @@ lookup_handle_symlink(struct nameidata *ndp, vnode_t *new_dp, bool *new_dp_has_i
 	struct componentname *cnp = &ndp->ni_cnd;
 	vnode_t dp;
 	char *tmppn;
+#if NAMEDRSRCFORK
 	u_int rsrclen = (cnp->cn_flags & CN_WANTSRSRCFORK) ? sizeof(_PATH_RSRCFORKSPEC) : 0;
+#else
+	u_int rsrclen = 0;
+#endif
 	bool dp_has_iocount = false;
 
 	if (ndp->ni_loopcnt++ >= MAXSYMLINKS) {

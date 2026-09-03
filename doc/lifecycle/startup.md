@@ -303,6 +303,8 @@ interrupts or preemption enabled may begin enforcement.
 ### Rank usage
 
 - Rank 1: Initialize some BSD globals
+- Rank 2: Register the standalone BearSSL kernel PRNG when selected. This
+  must precede the middle-rank VM random-context initialization and AP startup.
 - Middle: Initialize some early BSD subsystems and tightbeam runtime
 
 

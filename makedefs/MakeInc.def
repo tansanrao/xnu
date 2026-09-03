@@ -95,6 +95,13 @@ MACHINE_FLAGS_ARM64_T8142 = -DARM64_BOARD_CONFIG_T8142 			-mcpu=apple-m4+memtag+
 
 MACHINE_FLAGS_ARM64_VMAPPLE = -DARM64_BOARD_CONFIG_VMAPPLE              -march=armv8.5a+sme2
 
+# BCM2711 is a standalone Darwin target.  PLATFORM continues to name the host
+# SDK, while PLATFORM_FOR_CONFIG controls doconf and XNU's runtime policy.
+ifeq ($(CURRENT_MACHINE_CONFIG),BCM2711)
+override PLATFORM_FOR_CONFIG := Darwin
+export PLATFORM_FOR_CONFIG
+endif
+
 
 #
 # Deployment target flag
@@ -451,7 +458,7 @@ ARM64_PLKSEG_ADDR  = 0xfffffe0004004000
 ARM64_LINK_ADDR    = 0xfffffe0007004000
 endif
 
-# BCM2711 uses 4 KiB pages and breaks on XNU's Large Memory so we smol now.
+# BCM2711 uses the embedded 4 KiB kernel virtual-address layout.
 ifeq ($(CURRENT_MACHINE_CONFIG),BCM2711)
 ARM64_LARGE_MEMORY = 0
 ARM64_PLKSEG_ADDR  = 0xfffffff004004000

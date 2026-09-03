@@ -142,6 +142,9 @@
 #include <net/iptap.h>                  /* for iptap_init() */
 #include <sys/socketvar.h>              /* for socketinit() */
 #include <sys/protosw.h>                /* for domaininit() */
+#if SOCKETS
+#include <kern/uipc_domain.h>           /* for net_update_uptime() */
+#endif
 #include <kern/sched_prim.h>            /* for thread_wakeup() */
 #include <net/if_ether.h>               /* for ether_family_init() */
 #include <net/if_gif.h>                 /* for gif_init() */
@@ -154,11 +157,15 @@
 #include <net/network_agent.h>          /* for netagent_init() */
 #include <net/packet_mangler.h>         /* for pkt_mnglr_init() */
 #include <net/if_utun.h>                /* for utun_register_control() */
+#if NETWORKING
 #include <netinet6/ipsec.h>             /* for ipsec_init() */
+#endif
 #include <net/if_redirect.h>            /* for if_redirect_init() */
 #include <net/netsrc.h>                 /* for netsrc_init() */
 #include <net/ntstat.h>                 /* for nstat_init() */
+#if NETWORKING
 #include <netinet/mptcp_var.h>          /* for mptcp_control_register() */
+#endif
 #include <net/nwk_wq.h>                 /* for nwk_wq_init */
 #include <net/restricted_in_port.h>     /* for restricted_in_port_init() */
 #include <net/remote_vif.h>             /* for rvi_init() */

@@ -7835,8 +7835,7 @@ IOPMrootDomain::checkSystemSleepAllowed( IOOptionBits options,
 #if !CONFIG_SLEEP
 		err = kPMConfigPreventSystemSleep;    // 3. config does not support sleep
 		break;
-#endif
-
+#else
 		if (_driverKitMatchingAssertionCount != 0 || _driverKitSyncedAssertionCount != 0) {
 			err = kPMCPUAssertion;
 			break;
@@ -7901,6 +7900,7 @@ IOPMrootDomain::checkSystemSleepAllowed( IOOptionBits options,
 				break;
 			}
 		}
+#endif /* CONFIG_SLEEP */
 	}while (false);
 
 	if (err) {
@@ -13523,4 +13523,3 @@ IOPMrootDomain::sleepWakeDebugSaveFile(const char *name, char *buf, int len)
 }
 
 #endif /* defined(__i386__) || defined(__x86_64__) */
-

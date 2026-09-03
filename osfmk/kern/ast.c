@@ -367,8 +367,10 @@ handle_user_asts_interrupts_enabled(ast_t reasons, thread_t thread, task_t task)
 #if CONFIG_CPU_COUNTERS
 		kpc_thread_ast_handler(thread);
 #endif /* CONFIG_CPU_COUNTERS */
+#ifdef KPERF
 		kperf_thread_ast_handler(thread);
 		thread->kperf_ast = 0;
+#endif /* KPERF */
 	}
 
 	if (reasons & AST_RESET_PCS) {

@@ -416,9 +416,11 @@ vnode_setasnamedstream_internal(vnode_t vp, vnode_t svp)
 {
 	uint32_t streamflags = VISNAMEDSTREAM;
 
+#if NAMEDSTREAMS
 	if ((vp->v_mount->mnt_kern_flag & MNTK_NAMED_STREAMS) == 0) {
 		streamflags |= VISSHADOW;
 	}
+#endif
 
 	/* Tag the vnode. */
 	vnode_lock_spin(svp);

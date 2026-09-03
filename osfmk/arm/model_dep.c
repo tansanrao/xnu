@@ -102,9 +102,7 @@
 #endif
 
 
-#if     MACH_KDP
 void    kdp_trap(unsigned int, struct arm_saved_state *);
-#endif
 
 /*
  * Increment the PANICLOG_VERSION if you change the format of the panic
@@ -1487,19 +1485,12 @@ DebuggerCall(
 	unsigned int    reason,
 	void            *ctx)
 {
-#if     !MACH_KDP
-#pragma unused(reason,ctx)
-#endif /* !MACH_KDP */
-
 #if ALTERNATE_DEBUGGER
 	alternate_debugger_enter();
 #endif
 
-#if     MACH_KDP
+	/* Panic/stackshot dispatch is required even without the KDP transport. */
 	kdp_trap(reason, (struct arm_saved_state *)ctx);
-#else
-	/* TODO: decide what to do if no debugger config */
-#endif
 }
 
 boolean_t

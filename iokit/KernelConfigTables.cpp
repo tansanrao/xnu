@@ -34,6 +34,20 @@
 
 const char * gIOKernelConfigTables =
     "("
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+    "   {"
+    "     'IOClass'         = BCM2711PlatformExpert;"
+    "     'IOProviderClass' = IOPlatformExpertDevice;"
+    "     'IONameMatch'     = 'device-tree';"
+    "     'IOProbeScore'    = 1000:32;"
+    "   },"
+    "   {"
+    "     'IOClass'         = BCM2711CPU;"
+    "     'IOProviderClass' = IOPlatformDevice;"
+    "     'IONameMatch'     = 'brcm,bcm2711-cpu';"
+    "     'IOProbeScore'    = 1000:32;"
+    "   },"
+#endif
     "   {"
     "     'IOClass'         = IOPanicPlatform;"
     "     'IOProviderClass' = IOPlatformExpertDevice;"

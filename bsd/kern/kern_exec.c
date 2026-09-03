@@ -270,15 +270,17 @@ SYSCTL_INT(_vm, OID_AUTO, vm_shared_region_reslide_aslr,
 #endif
 #endif /* __has_feature(ptrauth_calls) */
 
-#if DEVELOPMENT || DEBUG
+#if (DEVELOPMENT || DEBUG) && MACH_KDP
 static TUNABLE(bool, enable_dext_coredumps_on_panic, "dext_panic_coredump", true);
-#else
+#elif MACH_KDP
 static TUNABLE(bool, enable_dext_coredumps_on_panic, "dext_panic_coredump", false);
-#endif
+#endif /* MACH_KDP */
+#if MACH_KDP
 extern kern_return_t kern_register_userspace_coredump(task_t task, const char * name, boolean_t emergency);
 #define USERSPACE_COREDUMP_PANIC_ENTITLEMENT "com.apple.private.enable-coredump-on-panic"
 #define USERSPACE_COREDUMP_PANIC_SEED_ENTITLEMENT \
 	"com.apple.private.enable-coredump-on-panic-seed-privacy-approved"
+#endif /* MACH_KDP */
 
 extern void proc_apply_task_networkbg_internal(proc_t, thread_t);
 extern void task_set_did_exec_flag(task_t task);
@@ -1940,7 +1942,9 @@ exec_mach_imgact(struct image_params *imgp)
 	int                     exec = (imgp->ip_flags & IMGPF_EXEC);
 	os_reason_t             exec_failure_reason = OS_REASON_NULL;
 	boolean_t               reslide = FALSE;
+#if MACH_KDP
 	char *                  userspace_coredump_name = NULL;
+#endif /* MACH_KDP */
 
 	/*
 	 * make sure it's a Mach-O 1.0 or Mach-O 2.0 binary; the difference
@@ -2832,6 +2836,7 @@ cleanup_rosetta_fp:
 		wakeup((caddr_t)p->p_pptr);
 	}
 
+#if MACH_KDP
 	/*
 	 * Set up dext coredumps on kernel panic.
 	 * This requires the following:
@@ -2861,6 +2866,7 @@ cleanup_rosetta_fp:
 		kfree_data(userspace_coredump_name, userspace_coredump_name_len + 1);
 		userspace_coredump_name = NULL;
 	}
+#endif /* MACH_KDP */
 
 	goto done;
 

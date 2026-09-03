@@ -217,7 +217,9 @@ struct processor        PERCPU_DATA(processor);
 static timer_call_func_t running_timer_funcs[] = {
 	[RUNNING_TIMER_QUANTUM] = thread_quantum_expire,
 	[RUNNING_TIMER_PREEMPT] = thread_preempt_expire,
+#if KPERF
 	[RUNNING_TIMER_KPERF] = kperf_timer_expire,
+#endif /* KPERF */
 	[RUNNING_TIMER_PERFCONTROL] = perfcontrol_timer_expire,
 };
 static_assert(sizeof(running_timer_funcs) / sizeof(running_timer_funcs[0])

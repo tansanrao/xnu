@@ -1,0 +1,35 @@
+#
+# BCM2711 standalone Darwin configuration.
+#
+# This machine configuration deliberately does not inherit an Apple product
+# configuration.  The macOS SDK is a build-time source of headers and static
+# libraries only; it does not describe the runtime feature set of this kernel.
+#
+######################################################################
+#
+#  Standard configurations
+#
+######################################################################
+#  ARM_EXTRAS_BASE = [ bcm2711_arm ]
+#  KERNEL_BASE =     [ arm64 bsmall msgb_small config_embedded config_requires_u32_munging ARM_EXTRAS_BASE ]
+#  KERNEL_RELEASE =  [ KERNEL_BASE release ]
+#  KERNEL_DEV =      [ KERNEL_BASE development mach_assert ]
+#  KERNEL_DEBUG =    [ KERNEL_BASE debug mach_assert ]
+#
+#  BSD_BASE =        [ mach_bsd psynch config_pthread_static ]
+#  FILESYS_BASE =    [ devfs ]
+#  IOKIT_BASE =      [ iokit iokitcpp no_kernel_hid ]
+#  LIBKERN_BASE =    [ libkerncpp config_blocks crypto_sha2 config_crypto_bearssl zlib ]
+#  MACH_BASE =       [ mach importance_inheritance config_atm config_coalitions config_iosched config_telemetry ]
+#  SCHED_BASE =      [ config_sched_timeshare_core config_sched_deferred_ast ]
+#  SECURITY_BASE =   [ config_macf ]
+#  VM_BASE =         [ vm_pressure_events memorystatus ]
+#
+#  RELEASE =         [ KERNEL_RELEASE BSD_BASE FILESYS_BASE IOKIT_BASE LIBKERN_BASE MACH_BASE SCHED_BASE SECURITY_BASE VM_BASE ]
+#  DEVELOPMENT =     [ KERNEL_DEV     BSD_BASE FILESYS_BASE IOKIT_BASE LIBKERN_BASE MACH_BASE SCHED_BASE SECURITY_BASE VM_BASE ]
+#  DEBUG =           [ KERNEL_DEBUG   BSD_BASE FILESYS_BASE IOKIT_BASE LIBKERN_BASE MACH_BASE SCHED_BASE SECURITY_BASE VM_BASE ]
+#
+######################################################################
+
+machine         "arm64"                        # <arm64>
+makeoptions     OSFMK_MACHINE = "arm64"        # <mach>

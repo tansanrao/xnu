@@ -4295,6 +4295,8 @@ dtrace_get_thread_inprobe(thread_t thread)
 	}
 }
 
+#endif /* CONFIG_DTRACE */
+
 vm_offset_t
 thread_get_kernel_stack(thread_t thread)
 {
@@ -4319,6 +4321,8 @@ thread_get_block_hint(thread_t thread)
 {
 	return (uint32_t)thread->block_hint;
 }
+
+#if CONFIG_DTRACE
 
 #if CONFIG_KCOV
 kcov_thread_data_t *

@@ -107,7 +107,7 @@ do_build_compile_commands_json: $(TARGET)/compile_commands.json
 	@:
 
 .LDFLAGS: ALWAYS
-	$(_v)$(REPLACECONTENTS) $@ $(LD) $(LDFLAGS_KERNEL) $(LDFLAGS_KERNEL_ONLY) $(LD_KERNEL_LIBS)
+	$(_v)$(REPLACECONTENTS) $@ $(LD) $(LDFLAGS_KERNEL) $(LDFLAGS_KERNEL_ONLY) $(LD_KERNEL_LIBS) $(LD_KERNEL_ARCHIVES)
 .CFLAGS: ALWAYS
 	$(_v)$(REPLACECONTENTS) $@ $(KCC) $(CFLAGS) $(INCFLAGS)
 
@@ -188,7 +188,7 @@ $(TARGET)/lib$(KERNEL_FILE_NAME).a: $(addprefix $(TARGET)/,$(foreach component,$
 	$(_v)$(LN) $(call function_convert_build_config_to_objdir,$(CURRENT_BUILD_CONFIG))/lib$(KERNEL_FILE_NAME).a $(OBJROOT)/lib$(KERNEL_FILE_NAME).a
 endif
 
-$(TARGET)/$(KERNEL_FILE_NAME).unstripped.noctf: $(addprefix $(TARGET)/,$(foreach component,$(COMPONENT_LIST),$(component)/$(CURRENT_KERNEL_CONFIG)/$(component).filelist)) lastkerneldataconst.o lastkernelconstructor.o nonlto.o version.o $(LDFILES_KERNEL_ONLY) .LDFLAGS $(filter %/MakeInc.kernel,$(MAKEFILE_LIST))
+$(TARGET)/$(KERNEL_FILE_NAME).unstripped.noctf: $(addprefix $(TARGET)/,$(foreach component,$(COMPONENT_LIST),$(component)/$(CURRENT_KERNEL_CONFIG)/$(component).filelist)) lastkerneldataconst.o lastkernelconstructor.o nonlto.o version.o $(LDFILES_KERNEL_ONLY) $(filter-out -%,$(filter %.a,$(LD_KERNEL_ARCHIVES))) .LDFLAGS $(filter %/MakeInc.kernel,$(MAKEFILE_LIST))
 ifeq ($(PRE_LTO),1)
 	@$(LOG_LTO) "$(@F)"
 	$(_v)$(RM) ltolink.filelist

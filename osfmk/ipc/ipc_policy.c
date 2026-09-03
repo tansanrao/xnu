@@ -2097,6 +2097,10 @@ _ipc_triage_telemetry_mode_policy_violation(
 	int maybe_ca_aux_data
 	)
 {
+#if !CONFIG_SERVICE_PORT_INFO
+	(void)maybe_ca_violating_port;
+#endif
+
 	if (!_ipc_test_or_set_should_emit_telemetry_for_telemetry_mode_policy_violation(policy_config, maybe_space)) {
 		/* Do not emit telemetry despite a violation being detected while in telemetry mode */
 		return false;

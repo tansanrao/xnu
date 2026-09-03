@@ -1433,8 +1433,14 @@ panic_debugger_log(const char *string, ...)
  * and calling out to any other functions we have for collecting diagnostic info.
  */
 static void
+#if !MACH_KDP
+__dead2
+#endif
 debugger_collect_diagnostics(unsigned int exception, unsigned int code, unsigned int subcode, void *state)
 {
+#if !MACH_KDP
+#pragma unused(exception, code, subcode, state)
+#endif /* !MACH_KDP */
 #if DEVELOPMENT || DEBUG
 	INJECT_NESTED_PANIC_IF_REQUESTED(PANIC_TEST_CASE_RECURPANIC_PRELOG);
 #endif
@@ -1448,10 +1454,12 @@ debugger_collect_diagnostics(unsigned int exception, unsigned int code, unsigned
 	 * we'll just spin in kdp_raise_exception.
 	 */
 	if (debugger_current_op == DBOP_DEBUGGER && halt_in_debugger) {
+#if MACH_KDP
 		kdp_raise_exception(exception, code, subcode, state);
 		if (debugger_safe_to_return && !debugger_is_panic) {
 			return;
 		}
+#endif /* MACH_KDP */
 	}
 
 #ifdef CONFIG_KCOV
@@ -1799,7 +1807,11 @@ handle_debugger_trap(unsigned int exception, unsigned int code, unsigned int sub
 #endif
 
 	if (debugger_current_op == DBOP_BREAKPOINT) {
+#if MACH_KDP
 		kdp_raise_exception(exception, code, subcode, state);
+#else
+		CPUDEBUGGERRET = KERN_NOT_SUPPORTED;
+#endif /* MACH_KDP */
 	} else if (debugger_current_op == DBOP_STACKSHOT) {
 		CPUDEBUGGERRET = do_stackshot(NULL);
 #if PGO
