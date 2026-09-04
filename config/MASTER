@@ -133,6 +133,8 @@ options		CONFIG_IMGSRC_ACCESS # source of imageboot dmg	# <config_imgsrc_access>
 options		CONFIG_TRIGGERS	# trigger vnodes		# <config_triggers>
 options		CONFIG_EXT_RESOLVER # e.g. memberd		# <config_ext_resolver>
 options		CONFIG_SEARCHFS	# searchfs syscall support	# <config_searchfs>
+options         CONFIG_NO_AMFI # no AMFI entitlement provider; deny queries # <config_no_amfi>
+options         CONFIG_HFS_STATIC # built-in HFS component # <config_hfs_static>
 options		CONFIG_MNT_SUID # allow suid binaries  # <config_mnt_suid>
 options		CONFIG_MNT_ROOTSNAP # allow rooting from snapshot # <config_mnt_rootsnap>
 options 	CONFIG_ROSV_STARTUP # allow read-only system volume startup # <config_rosv_startup>

@@ -800,8 +800,7 @@ load_machfile(
 	int vm_map_pageshift = PAGE_SHIFT;
 #if defined(__arm64__)
 	if (result->is_64bit_addr) {
-		/* enforce 16KB alignment of VM map entries */
-		vm_map_pageshift = SIXTEENK_PAGE_SHIFT;
+		vm_map_pageshift = ARM64_USER_PAGE_SHIFT;
 	} else {
 		vm_map_pageshift = (int)page_shift_user32;
 	}

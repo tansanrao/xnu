@@ -66,11 +66,12 @@ __get_cpu_capabilities:
 	.align 2
 	.globl __get_cpu_capabilities
 __get_cpu_capabilities:
-	ldr x0, Lcommpage_cc_addr
+	mov x0, #(_COMM_PAGE_CPU_CAPABILITIES64 & 0xffff)
+	movk x0, #((_COMM_PAGE_CPU_CAPABILITIES64 >> 16) & 0xffff), lsl #16
+	movk x0, #((_COMM_PAGE_CPU_CAPABILITIES64 >> 32) & 0xffff), lsl #32
+	movk x0, #((_COMM_PAGE_CPU_CAPABILITIES64 >> 48) & 0xffff), lsl #48
 	ldr	x0, [x0]
 	ret
-Lcommpage_cc_addr:
-.quad _COMM_PAGE_CPU_CAPABILITIES64
 
 #else
 #error Unsupported architecture

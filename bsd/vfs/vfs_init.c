@@ -423,6 +423,12 @@ vfsinit(void)
 
 	nspace_resolver_init();
 
+#if CONFIG_HFS_STATIC
+	/* Register after the VFS tables exist, before root mount discovery. */
+	extern void hfs_static_init(void);
+	hfs_static_init();
+#endif
+
 #if CONFIG_EXCLAVES
 	vfs_exclave_fs_start();
 #endif

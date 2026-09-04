@@ -455,6 +455,8 @@ Lin_cksum_whoops:
 	mov	x0, #-1
 	ret	lr
 
+.section __TEXT,__cstring,cstring_literals
 Lin_cksum_whoops_str:
 	.asciz	"os_cpu_in_cksum_mbuf: out of data\n"
+	.text
 	.align	5

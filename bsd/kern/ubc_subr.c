@@ -4431,6 +4431,12 @@ static errno_t
 accelerate_entitlement_queries(
 	struct cs_blob *cs_blob)
 {
+#if CONFIG_NO_AMFI
+	/* This profile has no entitlement provider; never accept its objects. */
+	if (amfi == NULL) {
+		return cs_blob->csb_entitlements == NULL ? 0 : EPERM;
+	}
+#endif
 	kern_return_t ret = KERN_NOT_SUPPORTED;
 
 #if CODE_SIGNING_MONITOR

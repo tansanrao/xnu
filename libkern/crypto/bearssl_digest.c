@@ -1,6 +1,7 @@
 /* XNU's digest ABI, backed by unmodified BearSSL hash implementations. */
 #include <stddef.h>
 #include <libkern/crypto/sha1.h>
+#include <libkern/crypto/md5.h>
 #include <libkern/crypto/sha2.h>
 #include <corecrypto/cc.h>
 #include <string.h>
@@ -97,3 +98,51 @@ BEARSSL_SHA2(384)
 BEARSSL_SHA2(512)
 
 #undef BEARSSL_SHA2
+
+/* HFS volume UUIDs use the legacy MD5 ABI (count is bytes, high word first). */
+static void
+md5_import(br_md5_context *bear, const MD5_CTX *ctx)
+{
+	br_md5_init(bear);
+	memcpy(bear->val, ctx->state, sizeof(bear->val));
+	bear->count = ((uint64_t)ctx->count[0] << 32) | ctx->count[1];
+	memcpy(bear->buf, ctx->buffer, sizeof(bear->buf));
+}
+
+static void
+md5_export(MD5_CTX *ctx, const br_md5_context *bear)
+{
+	memcpy(ctx->state, bear->val, sizeof(bear->val));
+	ctx->count[0] = (uint32_t)(bear->count >> 32);
+	ctx->count[1] = (uint32_t)bear->count;
+	memcpy(ctx->buffer, bear->buf, sizeof(bear->buf));
+}
+
+void
+MD5Init(MD5_CTX *ctx)
+{
+	br_md5_context bear = {0};
+	br_md5_init(&bear);
+	memset(ctx, 0, sizeof(*ctx));
+	md5_export(ctx, &bear);
+	cc_clear(sizeof(bear), &bear);
+}
+
+void
+MD5Update(MD5_CTX *ctx, const void *data, unsigned int len)
+{
+	br_md5_context bear;
+	md5_import(&bear, ctx);
+	br_md5_update(&bear, data, len);
+	md5_export(ctx, &bear);
+	cc_clear(sizeof(bear), &bear);
+}
+
+void
+MD5Final(unsigned char digest[MD5_DIGEST_LENGTH], MD5_CTX *ctx)
+{
+	br_md5_context bear;
+	md5_import(&bear, ctx);
+	br_md5_out(&bear, digest);
+	cc_clear(sizeof(bear), &bear);
+}

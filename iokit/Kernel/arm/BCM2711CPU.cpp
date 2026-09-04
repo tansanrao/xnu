@@ -16,6 +16,7 @@ extern "C" vm_offset_t ml_io_map(vm_offset_t phys_addr, vm_size_t size);
 extern "C" void bcm2711_wait_for_all_cpus(void);
 
 static volatile SInt32 registeredCPUs;
+static const char *bootCPURegistered = "BCM2711BootCPURegistered";
 
 extern "C" void
 bcm2711_wait_for_all_cpus(void)
@@ -106,6 +107,11 @@ BCM2711CPU::start(IOService *provider)
 	processorInfo.l3_cache_size = topology->l3_cache_size;
 
 	perfmon_interrupt_handler_func pmiHandler;
+	/* AP startup can immediately cause an IPI from the boot CPU. */
+	if (logicalID != ml_get_boot_cpu_number() &&
+	    IOService::waitForService(IOService::resourceMatching(bootCPURegistered)) == nullptr) {
+		panic("BCM2711CPU: boot CPU registration wait failed");
+	}
 	kern_return_t result = ml_processor_register(&processorInfo,
 	    &machProcessor, &ipi_handler, &pmiHandler);
 	if (result != KERN_SUCCESS) {
@@ -115,6 +121,9 @@ BCM2711CPU::start(IOService *provider)
 
 	IOLog("BCM2711CPU: registered CPU %d (MPIDR 0x%x)\n",
 	    logicalID, physicalID);
+	if (logicalID == ml_get_boot_cpu_number()) {
+		IOService::publishResource(bootCPURegistered, kOSBooleanTrue);
+	}
 	if ((UInt32)OSIncrementAtomic(&registeredCPUs) + 1 ==
 	    ml_get_cpu_count()) {
 		ml_cpu_init_completed();

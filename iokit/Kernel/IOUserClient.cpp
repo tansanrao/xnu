@@ -1575,6 +1575,9 @@ OSObject *
 IOUserClient::copyClientEntitlement( task_t task,
     const char * entitlement )
 {
+#if CONFIG_NO_AMFI
+	return NULL;
+#else
 	void *entitlement_object = NULL;
 
 	if (task == NULL) {
@@ -1602,6 +1605,7 @@ IOUserClient::copyClientEntitlement( task_t task,
 	assert(entitlement_object != NULL);
 
 	return (OSObject*)entitlement_object;
+#endif /* CONFIG_NO_AMFI */
 }
 
 OSObject *

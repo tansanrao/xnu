@@ -1534,6 +1534,7 @@ IOBSDLowSpaceUnlinkKernelCore(void)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#if !CONFIG_NO_AMFI
 static char*
 copyOSStringAsCString(OSString *string)
 {
@@ -1554,6 +1555,8 @@ copyOSStringAsCString(OSString *string)
 
 	return c_string;
 }
+#endif
+
 
 extern "C" OS_ALWAYS_INLINE boolean_t
 IOCurrentTaskHasStringEntitlement(const char *entitlement, const char *value)
@@ -1564,6 +1567,10 @@ IOCurrentTaskHasStringEntitlement(const char *entitlement, const char *value)
 extern "C" boolean_t
 IOTaskHasStringEntitlement(task_t task, const char *entitlement, const char *value)
 {
+#if CONFIG_NO_AMFI
+	/* This configuration has no authority that can grant entitlements. */
+	return false;
+#else
 	if (task == NULL) {
 		task = current_task();
 	}
@@ -1588,6 +1595,7 @@ IOTaskHasStringEntitlement(task_t task, const char *entitlement, const char *val
 	}
 
 	return false;
+#endif /* CONFIG_NO_AMFI */
 }
 
 extern "C" OS_ALWAYS_INLINE boolean_t
@@ -1607,6 +1615,10 @@ IOCurrentTaskHasEntitlement(const char *entitlement)
 extern "C" boolean_t
 IOTaskHasEntitlement(task_t task, const char *entitlement)
 {
+#if CONFIG_NO_AMFI
+	/* This configuration has no authority that can grant entitlements. */
+	return false;
+#else
 	if (task == NULL) {
 		task = current_task();
 	}
@@ -1630,11 +1642,16 @@ IOTaskHasEntitlement(task_t task, const char *entitlement)
 	}
 
 	return false;
+#endif /* CONFIG_NO_AMFI */
 }
 
 extern "C" boolean_t
 IOTaskGetIntegerEntitlement(task_t task, const char *entitlement, uint64_t *value)
 {
+#if CONFIG_NO_AMFI
+	/* This configuration has no authority that can grant entitlements. */
+	return false;
+#else
 	void *entitlement_object = NULL;
 
 	if (task == NULL) {
@@ -1673,6 +1690,7 @@ IOTaskGetIntegerEntitlement(task_t task, const char *entitlement, uint64_t *valu
 	OSSafeReleaseNULL(os_object);
 
 	return has_entitlement;
+#endif /* CONFIG_NO_AMFI */
 }
 
 extern "C" OS_ALWAYS_INLINE char*
@@ -1684,6 +1702,10 @@ IOCurrentTaskGetEntitlement(const char *entitlement)
 extern "C" char*
 IOTaskGetEntitlement(task_t task, const char *entitlement)
 {
+#if CONFIG_NO_AMFI
+	/* This configuration has no authority that can grant entitlements. */
+	return NULL;
+#else
 	void *entitlement_object = NULL;
 	char *return_value = NULL;
 
@@ -1721,11 +1743,16 @@ IOTaskGetEntitlement(task_t task, const char *entitlement)
 	OSSafeReleaseNULL(os_object);
 
 	return return_value;
+#endif /* CONFIG_NO_AMFI */
 }
 
 extern "C" boolean_t
 IOTaskHasEntitlementAsBooleanOrObject(task_t task, const char *entitlement)
 {
+#if CONFIG_NO_AMFI
+	/* This configuration has no authority that can grant entitlements. */
+	return false;
+#else
 	if (task == NULL) {
 		task = current_task();
 	}
@@ -1766,6 +1793,7 @@ IOTaskHasEntitlementAsBooleanOrObject(task_t task, const char *entitlement)
 	OSSafeReleaseNULL(os_object);
 
 	return not_false_entitlement;
+#endif /* CONFIG_NO_AMFI */
 }
 
 extern "C" boolean_t

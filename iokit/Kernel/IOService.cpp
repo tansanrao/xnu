@@ -5398,7 +5398,6 @@ IOService::publishHiddenMedia(IOService * parent)
 	bool                wasHiding;
 
 	iomediaClass = OSMetaClass::getMetaClassWithName(gIOMediaKey);
-	assert(iomediaClass);
 
 	LOCKWRITENOTIFY();
 	wasHiding = gIOServiceHideIOMedia;
@@ -5409,7 +5408,8 @@ IOService::publishHiddenMedia(IOService * parent)
 
 	FindRootMediaContext ctx = { .services = NULL, .parent = parent };
 
-	if (wasHiding) {
+	/* An unloaded storage family has no instances to publish. */
+	if (wasHiding && iomediaClass) {
 		iomediaClass->applyToInstances(publishHiddenMediaApplier, &ctx);
 	}
 	if (ctx.services) {
@@ -5447,11 +5447,14 @@ IOService::publishHiddenMedia(IOService * parent)
 void
 IOService::setRootMedia(IOService * root)
 {
-	const OSMetaClass * ioblockstoragedriverClass;
+	const OSMetaClass * ioblockstoragedriverClass = NULL;
 	bool unhide;
 
-	ioblockstoragedriverClass = OSMetaClass::getMetaClassWithName(gIOBlockStorageDriverKey);
-	assert(ioblockstoragedriverClass);
+	/* Memory disks have no IOKit storage service or storage-family classes. */
+	if (root) {
+		ioblockstoragedriverClass = OSMetaClass::getMetaClassWithName(gIOBlockStorageDriverKey);
+		assert(ioblockstoragedriverClass);
+	}
 
 	while (root) {
 		if (root->metaCast(ioblockstoragedriverClass)) {
