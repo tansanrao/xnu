@@ -26,15 +26,11 @@ OSDefineMetaClassAndStructors(BCM2712PlatformExpert, IODTPlatformExpert)
 bool
 BCM2712PlatformExpert::start(IOService *provider)
 {
-	IOLog("BCM2712PlatformExpert: starting\n");
 	bool result = super::start(provider);
 	if (result) {
 		const unsigned int max_cpus = ml_get_max_cpu_number() + 1;
 		ml_set_max_cpus(max_cpus);
-		IOLog("BCM2712PlatformExpert: finalized %u CPUs\n",
-		    max_cpus);
 	}
-	IOLog("BCM2712PlatformExpert: start returned %d\n", result);
 	return result;
 }
 
@@ -46,7 +42,6 @@ BCM2712PlatformExpert::haltRestart(unsigned int type)
 		return super::haltRestart(type);
 	}
 
-	IOLog("BCM2712PlatformExpert: requesting PSCI system reset\n");
 	int64_t result = bcm2712_psci_system_reset();
 	IOLog("BCM2712PlatformExpert: PSCI system reset failed: %lld\n",
 	    result);

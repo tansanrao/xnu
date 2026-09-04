@@ -38,7 +38,6 @@ OSDefineMetaClassAndStructors(BCM2711PlatformExpert, IODTPlatformExpert)
 bool
 BCM2711PlatformExpert::start(IOService *provider)
 {
-	IOLog("BCM2711PlatformExpert: starting\n");
 	bool result = super::start(provider);
 	if (result) {
 		IORegistryEntry *watchdog = IORegistryEntry::fromPath(
@@ -57,10 +56,7 @@ BCM2711PlatformExpert::start(IOService *provider)
 
 		const unsigned int max_cpus = ml_get_max_cpu_number() + 1;
 		ml_set_max_cpus(max_cpus);
-		IOLog("BCM2711PlatformExpert: finalized %u CPUs\n",
-		    max_cpus);
 	}
-	IOLog("BCM2711PlatformExpert: start returned %d\n", result);
 	return result;
 }
 

@@ -32,19 +32,6 @@
 #include <arm64/proc_reg.h>
 #include <pexpert/arm64/board_config.h>
 
-#if defined(BCM2712)
-/* Raw PL011 checkpoints for the MMU-off secondary reset path. */
-.macro BCM2712_UART_MARK value
-	movz	x16, #0x1000
-	movk	x16, #0x7d00, lsl #16
-	movk	x16, #0x0010, lsl #32
-.Lbcm2712_uart_wait_\@:
-	ldr	w17, [x16, #0x18]
-	tbnz	w17, #5, .Lbcm2712_uart_wait_\@
-	mov	w17, #\value
-	str	w17, [x16]
-.endmacro
-#endif
 #include <mach_assert.h>
 #include <machine/asm.h>
 #if defined(BCM2711) || defined(BCM2712)
@@ -145,9 +132,6 @@ LEXT(LowResetVectorBase)
 	.globl EXT(reset_vector)
 LEXT(reset_vector)
 
-#if defined(BCM2712)
-	BCM2712_UART_MARK 0x52					// R: reached XNU's reset vector
-#endif
 	// Preserve x0 for start_first_cpu, if called
 	// Unlock the core for debugging
 	msr		OSLAR_EL1, xzr
@@ -165,9 +149,6 @@ LEXT(reset_vector)
 	// Process reset handlers
 	adrp	x19, EXT(ResetHandlerData)@page			// Get address of the reset handler data
 	add		x19, x19, EXT(ResetHandlerData)@pageoff
-#if defined(BCM2712)
-	BCM2712_UART_MARK 0x44					// D: reset-handler data is addressable
-#endif
 	mrs		x15, MPIDR_EL1						// Load MPIDR to get CPU number
 #if defined(BCM2712)
 	and		x0, x15, #0xFF00					// BCM2712 core number is in Affinity1
@@ -190,10 +171,6 @@ Lnext_cpu_data_entry:
 	b.eq	Lskip_cpu_reset_handler				// Not found
 	b		Lcheck_cpu_data_entry	// loop
 Lfound_cpu_data_entry:
-
-#if defined(BCM2712)
-	BCM2712_UART_MARK 0x46					// F: matched the physical CPU ID
-#endif
 
 #ifdef APPLEEVEREST
 	/*
@@ -218,10 +195,6 @@ Lfound_cpu_data_entry:
 	cmp		x0, x2
 	bne		Lskip_cpu_reset_handler
 1:
-
-#if defined(BCM2712)
-	BCM2712_UART_MARK 0x53					// S: dispatching XNU's start_cpu
-#endif
 
 #if HAS_BP_RET
 	bl		EXT(set_bp_ret)

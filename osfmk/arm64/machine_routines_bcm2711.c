@@ -13,7 +13,6 @@
 
 #define GICD_CTLR       0x000
 #define GICD_TYPER      0x004
-#define GICD_IIDR       0x008
 #define GICD_IGROUPR    0x080
 #define GICD_ISENABLER  0x100
 #define GICD_ICENABLER  0x180
@@ -30,7 +29,6 @@
 #define GICC_BPR        0x008
 #define GICC_IAR        0x00c
 #define GICC_EOIR       0x010
-#define GICC_IIDR       0x0fc
 
 void bcm2711_gic_set_ipi_handler(ipi_handler_t handler);
 
@@ -313,9 +311,6 @@ bcm2711_gic_init(vm_offset_t distributor_base, vm_offset_t cpu_interface_base)
 	if (gic_intids > BCM2711_GIC_MAX_INTIDS) {
 		gic_intids = BCM2711_GIC_MAX_INTIDS;
 	}
-	printf("BCM2711: GICD typer=0x%x iidr=0x%x GICC iidr=0x%x (%u INTIDs)\n",
-	    typer, gic_read32(gic_distributor_base, GICD_IIDR),
-	    gic_read32(gic_cpu_interface_base, GICC_IIDR), gic_intids);
 	gic_write32(gic_distributor_base, GICD_CTLR, 0);
 	for (uint32_t intid = 32; intid < gic_intids; intid += 32) {
 		uint32_t offset = (intid / 32) * 4;
