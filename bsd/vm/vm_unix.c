@@ -1278,7 +1278,11 @@ shared_region_check_np(
 			/* retrieve address of its first mapping... */
 			kr = vm_shared_region_start_address(shared_region, &start_address);
 			if (kr != KERN_SUCCESS) {
-				SHARED_REGION_TRACE_ERROR(("shared_region: %p [%d(%s)] "
+				/* An empty region is expected before dyld installs a cache,
+				 * and throughout ordinary-file loading without a cache. */
+				SHARED_REGION_TRACE((kr == KERN_INVALID_ADDRESS ?
+				    SHARED_REGION_TRACE_INFO_LVL : SHARED_REGION_TRACE_ERROR_LVL),
+				    ("shared_region: %p [%d(%s)] "
 				    "check_np(0x%llx) "
 				    "vm_shared_region_start_address() returned 0x%x\n",
 				    (void *)VM_KERNEL_ADDRPERM(current_thread()),
