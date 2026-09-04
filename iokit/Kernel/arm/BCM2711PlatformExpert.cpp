@@ -24,6 +24,7 @@ class BCM2711PlatformExpert : public IODTPlatformExpert
 private:
 	UInt64 watchdogPhysicalAddress;
 	UInt64 watchdogLength;
+	vm_offset_t watchdogRegisters;
 
 public:
 	bool start(IOService *provider) APPLE_KEXT_OVERRIDE;
@@ -53,6 +54,11 @@ BCM2711PlatformExpert::start(IOService *provider)
 		watchdogPhysicalAddress = pe_arm_get_soc_base_phys() + range[0];
 		watchdogLength = range[1];
 		watchdog->release();
+		/* Panic restart cannot allocate mappings or acquire VM locks. */
+		watchdogRegisters = ml_io_map(watchdogPhysicalAddress, watchdogLength);
+		if (watchdogRegisters == 0) {
+			panic("BCM2711PlatformExpert: unable to map watchdog");
+		}
 
 		const unsigned int max_cpus = ml_get_max_cpu_number() + 1;
 		ml_set_max_cpus(max_cpus);
@@ -68,7 +74,7 @@ BCM2711PlatformExpert::haltRestart(unsigned int type)
 		return super::haltRestart(type);
 	}
 
-	vm_offset_t pm = ml_io_map(watchdogPhysicalAddress, watchdogLength);
+	vm_offset_t pm = watchdogRegisters;
 	if (pm == 0) {
 		return -1;
 	}
