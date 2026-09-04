@@ -1221,6 +1221,11 @@ cpu_machine_idle_init(boolean_t from_boot)
 #if !CONFIG_SPTM
 		ResetHandlerData.assist_reset_handler = 0;
 		ResetHandlerData.cpu_data_entries = ml_static_vtop((vm_offset_t)CpuDataEntries);
+#if defined(BCM2712)
+		/* PSCI secondaries read this structure with the MMU and caches off. */
+		flush_dcache((vm_offset_t)&ResetHandlerData,
+		    sizeof(ResetHandlerData), FALSE);
+#endif
 #endif
 
 #ifdef MONITOR
