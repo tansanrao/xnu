@@ -42,6 +42,7 @@
 #include <pexpert/arm/protos.h>
 #include <os/atomic_private.h>
 static _Atomic uint64_t serial_keyboard_polls;
+static _Atomic bool serial_keyboard_started;
 static thread_t serial_keyboard_thread;
 
 void
@@ -76,6 +77,12 @@ serial_keyboard_init(void)
 		return;
 	}
 
+#if defined(ARM64_BOARD_CONFIG_BCM2711)
+	/* kminit starts input early; normal Mach startup calls here again. */
+	if (!os_atomic_cmpxchg(&serial_keyboard_started, false, true, relaxed)) {
+		return;
+	}
+#endif
 	kprintf("Serial keyboard started\n");
 	result = kernel_thread_start_priority((thread_continue_t)serial_keyboard_start, NULL, MAXPRI_KERNEL, &thread);
 	if (result != KERN_SUCCESS) {
