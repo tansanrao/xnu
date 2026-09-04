@@ -19,8 +19,7 @@
 #  KERNEL_DEV =      [ KERNEL_BASE development mach_assert ]
 #  KERNEL_DEBUG =    [ KERNEL_BASE debug mach_assert ]
 #
-#  BSD_BASE =        [ mach_bsd psynch config_proc_uuid_policy NETWORK_BASE config_pthread_static ]
-#  NETWORK_BASE =    [ inet bpfilter if_bridge traffic_mgt dummynet pf flow_divert necp content_filter multipath mptcp skywalk config_nexus_user_pipe config_nexus_kernel_pipe config_nexus_flowswitch config_nexus_netif ]
+#  BSD_BASE =        [ mach_bsd psynch config_proc_uuid_policy config_pthread_static ]
 #  FILESYS_BASE =    [ devfs config_hfs_static ]
 #  IOKIT_BASE =      [ iokit iokitcpp no_kernel_hid ]
 #  LIBKERN_BASE =    [ libkerncpp config_blocks crypto_sha2 config_crypto_bearssl zlib ]

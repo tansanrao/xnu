@@ -26,10 +26,6 @@
  * @APPLE_OSREFERENCE_LICENSE_HEADER_END@
  */
 
-#if CONFIG_CRYPTO_BEARSSL
-#include <bearssl_hmac.h>
-#endif
-
 #include <string.h>
 #include <sys/types.h>
 #include <sys/syslog.h>
@@ -605,22 +601,6 @@ flow_divert_packet_compute_hmac(mbuf_ref_t packet, struct flow_divert_group *gro
 {
 	mbuf_ref_t  curr_mbuf       = packet;
 
-#if CONFIG_CRYPTO_BEARSSL
-	if (group->token_key == NULL) {
-		return ENOPROTOOPT;
-	}
-	br_hmac_key_context key;
-	br_hmac_context ctx;
-	br_hmac_key_init(&key, &br_sha1_vtable, group->token_key, group->token_key_size);
-	br_hmac_init(&ctx, &key, 0);
-	while (curr_mbuf != NULL) {
-		br_hmac_update(&ctx, mtod(curr_mbuf, void *), mbuf_len(curr_mbuf));
-		curr_mbuf = mbuf_next(curr_mbuf);
-	}
-	br_hmac_out(&ctx, hmac);
-	memset_s(&key, sizeof(key), 0, sizeof(key));
-	memset_s(&ctx, sizeof(ctx), 0, sizeof(ctx));
-#else
 	if (g_crypto_funcs == NULL || group->token_key == NULL) {
 		return ENOPROTOOPT;
 	}
@@ -634,8 +614,6 @@ flow_divert_packet_compute_hmac(mbuf_ref_t packet, struct flow_divert_group *gro
 	}
 
 	g_crypto_funcs->cchmac_final_fn(g_crypto_funcs->ccsha1_di, hmac_ctx, hmac);
-
-#endif
 
 	return 0;
 }

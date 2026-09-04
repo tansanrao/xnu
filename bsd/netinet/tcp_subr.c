@@ -141,11 +141,7 @@
 #include <net/sockaddr_utils.h>
 
 #include <corecrypto/ccaes.h>
-#if CONFIG_CRYPTO_BEARSSL
-#include <bearssl_block.h>
-#else
 #include <libkern/crypto/aes.h>
-#endif
 #include <libkern/crypto/md5.h>
 #include <sys/kdebug.h>
 #include <mach/sdt.h>
@@ -330,11 +326,7 @@ static void tcp_flow_lim_stats(struct ifnet_stats_per_flow *ifs,
 static void tcp_flow_ecn_perf_stats(struct ifnet_stats_per_flow *ifs,
     struct if_tcp_ecn_perf_stat *stat);
 
-#if CONFIG_CRYPTO_BEARSSL
-static br_aes_ct_cbcenc_keys tfo_ctx;
-#else
 static aes_encrypt_ctx tfo_ctx; /* Crypto-context for TFO */
-#endif
 
 /* TCP RST duplicate suppression */
 static LCK_ATTR_DECLARE(tcp_rst_rlc_attr, 0, 0);
@@ -446,13 +438,7 @@ tcp_tfo_gen_cookie(struct inpcb *inp, u_char *out __sized_by(blk_size), size_t b
 		memcpy(in, &inp->inp_faddr, sizeof(struct in_addr));
 	}
 
-#if CONFIG_CRYPTO_BEARSSL
-	u_char iv[CCAES_BLOCK_SIZE] = { 0 };
-	memcpy(out, in, CCAES_BLOCK_SIZE);
-	br_aes_ct_cbcenc_run(&tfo_ctx, iv, out, CCAES_BLOCK_SIZE);
-#else
 	aes_encrypt_cbc(in, NULL, 1, out, &tfo_ctx);
-#endif
 }
 
 __private_extern__ int
@@ -511,11 +497,7 @@ tcp_sysctl_fastopenkey(__unused struct sysctl_oid *oidp, __unused void *arg1,
 		}
 	}
 
-#if CONFIG_CRYPTO_BEARSSL
-	br_aes_ct_cbcenc_init(&tfo_ctx, (u_char *)key, TCP_FASTOPEN_KEYLEN);
-#else
 	aes_encrypt_key128((u_char *)key, &tfo_ctx);
-#endif
 
 exit:
 	return error;
@@ -621,11 +603,7 @@ tcp_tfo_init(void)
 	u_char key[TCP_FASTOPEN_KEYLEN];
 
 	read_frandom(key, sizeof(key));
-#if CONFIG_CRYPTO_BEARSSL
-	br_aes_ct_cbcenc_init(&tfo_ctx, key, TCP_FASTOPEN_KEYLEN);
-#else
 	aes_encrypt_key128(key, &tfo_ctx);
-#endif
 }
 
 static u_char isn_secret[32];

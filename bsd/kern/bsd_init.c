@@ -844,7 +844,7 @@ bsd_init(void)
 	pfloginit();
 #endif /* PFLOG */
 
-#if NETHER > 0
+#if NETWORKING && NETHER > 0
 	/* Register the built-in dlil ethernet interface family */
 	bsd_init_kprintf("calling ether_family_init\n");
 	ether_family_init();
