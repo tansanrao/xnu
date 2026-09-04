@@ -284,7 +284,8 @@ mach_msg_overwrite(
 		msg->msgh_remote_port = notify;
 	}
 
-#if TARGET_OS_OSX
+/* Standalone Darwin has no simulator fallback or dispatch voucher provider. */
+#if TARGET_OS_OSX && !defined(LIBSYSCALL_STANDALONE)
 	if (voucher_mach_msg_fill_aux_supported()) {
 		option64 |= MACH64_SEND_MQ_CALL;
 	} else {
