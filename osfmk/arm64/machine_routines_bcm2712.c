@@ -14,7 +14,6 @@
 #define GICD_CTLR       0x000
 #define GICD_TYPER      0x004
 #define GICD_IIDR       0x008
-#define GICD_IGROUPR    0x080
 #define GICD_ISENABLER  0x100
 #define GICD_ICENABLER  0x180
 #define GICD_ISPENDR    0x200
@@ -112,9 +111,9 @@ bcm2712_gic_configure(const struct bcm2712_irq_spec *spec)
 	uint32_t intid = spec->intid;
 	bcm2712_gic_mask(intid);
 	bcm2712_gic_set_pending(intid, false);
-	uint32_t group_reg = GICD_IGROUPR + (intid / 32) * 4;
-	gic_write32(gic_distributor_base, group_reg,
-	    gic_read32(gic_distributor_base, group_reg) | (1U << (intid % 32)));
+	/* BL31 assigns normal-world sources to Group 1. GICD_IGROUPR is a
+	 * secure-view ownership register and is not configured from NS-EL1.
+	 */
 	*(volatile uint8_t *)(gic_distributor_base + GICD_IPRIORITYR + intid) = (uint8_t)spec->priority;
 	if (intid >= 32) {
 		*(volatile uint8_t *)(gic_distributor_base + GICD_ITARGETSR + intid) = (uint8_t)target;
@@ -226,17 +225,26 @@ bcm2712_gic_validate_cpu(void)
 	uint32_t cpu = bcm2712_gic_current_cpu();
 	uint32_t target = *(volatile uint8_t *)(gic_distributor_base + GICD_ITARGETSR);
 	uint32_t required = (1U << BCM2712_GIC_IPI) | (1U << BCM2712_GIC_TIMER);
+	uint32_t stored_target = cpu < BCM2712_GIC_MAX_CPUS ?
+	    os_atomic_load(&gic_targets[cpu], acquire) : 0;
+	uint32_t enabled = gic_read32(gic_distributor_base, GICD_ISENABLER);
+	uint32_t ipi_priority = *(volatile uint8_t *)(gic_distributor_base + GICD_IPRIORITYR);
+	uint32_t timer_priority = *(volatile uint8_t *)(gic_distributor_base +
+	    GICD_IPRIORITYR + BCM2712_GIC_TIMER);
+	uint32_t config = gic_read32(gic_distributor_base, GICD_ICFGR + 4);
+	uint32_t pmr = gic_read32(gic_cpu_interface_base, GICC_PMR);
+	uint32_t ctlr = gic_read32(gic_cpu_interface_base, GICC_CTLR);
+	uint32_t bpr = gic_read32(gic_cpu_interface_base, GICC_BPR);
 	if (cpu >= BCM2712_GIC_MAX_CPUS || target == 0 || (target & (target - 1)) ||
-	    target != os_atomic_load(&gic_targets[cpu], acquire) ||
-	    (gic_read32(gic_distributor_base, GICD_IGROUPR) & required) != required ||
-	    (gic_read32(gic_distributor_base, GICD_ISENABLER) & required) != required ||
-	    *(volatile uint8_t *)(gic_distributor_base + GICD_IPRIORITYR) != 0x40 ||
-	    *(volatile uint8_t *)(gic_distributor_base + GICD_IPRIORITYR + BCM2712_GIC_TIMER) != 0x60 ||
-	    (gic_read32(gic_distributor_base, GICD_ICFGR + 4) & (2U << 22)) != 0 ||
-	    (gic_read32(gic_cpu_interface_base, GICC_PMR) & 0xf0) != 0xf0 ||
-	    (gic_read32(gic_cpu_interface_base, GICC_CTLR) & 1U) != 1U ||
-	    gic_read32(gic_cpu_interface_base, GICC_BPR) > 3) {
-		panic("BCM2712: invalid banked GIC state on CPU %u target 0x%x", cpu, target);
+	    target != stored_target || (enabled & required) != required ||
+	    ipi_priority != 0x40 || timer_priority != 0x60 ||
+	    (config & (2U << 22)) != 0 || (pmr & 0xf0) != 0xf0 ||
+	    (ctlr & 1U) != 1U || bpr > 3) {
+		printf("BCM2712: GIC validation CPU %u target=0x%x stored=0x%x "
+		    "enabled=0x%x pri=0x%x/0x%x cfg=0x%x pmr=0x%x ctlr=0x%x bpr=0x%x\n",
+		    cpu, target, stored_target, enabled, ipi_priority, timer_priority,
+		    config, pmr, ctlr, bpr);
+		panic("BCM2712: invalid banked GIC state on CPU %u", cpu);
 	}
 	for (unsigned int other = 0; other < BCM2712_GIC_MAX_CPUS; other++) {
 		if (other != cpu && os_atomic_load(&gic_targets[other], acquire) == target) {
