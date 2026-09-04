@@ -38,9 +38,9 @@
 	movz	x16, #0x1000
 	movk	x16, #0x7d00, lsl #16
 	movk	x16, #0x0010, lsl #32
-1:
+.Lbcm2712_uart_wait_\@:
 	ldr	w17, [x16, #0x18]
-	tbnz	w17, #5, 1b
+	tbnz	w17, #5, .Lbcm2712_uart_wait_\@
 	mov	w17, #\value
 	str	w17, [x16]
 .endmacro
