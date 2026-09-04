@@ -10,7 +10,9 @@
 #define __ARM_VMSA__ 8
 #define __ARM_VFP__ 4
 #define __ARM_COHERENT_CACHE__ 1
-#define __ARM_COHERENT_IO__ 1
+/* Do not define __ARM_COHERENT_IO__: an MMU-off Cortex-A76 secondary
+ * cannot observe dirty cache lines. XNU's cache-maintenance calls must
+ * issue real PoC operations, including when publishing CPU reset data. */
 #define __ARM_IC_NOALIAS_ICACHE__ 1
 #define __ARM_DEBUG__ 7
 #define __ARM_ENABLE_SWAP__ 1

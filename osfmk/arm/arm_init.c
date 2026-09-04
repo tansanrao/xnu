@@ -639,6 +639,11 @@ arm_init(
 #endif
 #endif
 
+#if defined(BCM2712)
+	/* start_cpu reads these globals before enabling its MMU and data cache. */
+	flush_dcache((vm_offset_t)&const_boot_args, sizeof(const_boot_args), FALSE);
+	flush_dcache((vm_offset_t)&cpu_ttep, sizeof(cpu_ttep), FALSE);
+#endif
 	cpu_machine_idle_init(TRUE);
 
 	PE_init_platform(TRUE, &BootCpuData);

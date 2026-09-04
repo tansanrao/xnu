@@ -176,22 +176,6 @@ LEXT(reset_vector)
 #else
 	and		x0, x15, #0xFF						// CPU number is in MPIDR Affinity Level 0
 #endif
-#if defined(BCM2712)
-	/* This port executes the reset vector in place, so its PC-relative
-	 * address remains valid while the MMU is off. */
-	adrp	x1, EXT(CpuDataEntries)@page
-	add		x1, x1, EXT(CpuDataEntries)@pageoff
-	ubfx	x2, x15, #8, #8					// Affinity1 is the logical CPU slot
-	cmp	x2, #MAX_CPUS
-	b.hs	Lbcm2712_cpu_slot_missing
-	add	x1, x1, x2, lsl #4
-	ldr	x21, [x1, CPU_DATA_PADDR]
-	cbz	x21, Lbcm2712_cpu_slot_missing
-	b	Lfound_cpu_data_entry
-Lbcm2712_cpu_slot_missing:
-	BCM2712_UART_MARK 0x4E					// N: Affinity1 slot is unavailable
-	b	Lskip_cpu_reset_handler
-#else
 	ldr		x1, [x19, CPU_DATA_ENTRIES]			// Load start of data entries
 	add		x3, x1, MAX_CPUS * 16				// end addr of data entries = start + (16 * MAX_CPUS)
 Lcheck_cpu_data_entry:
@@ -205,11 +189,10 @@ Lnext_cpu_data_entry:
 	cmp		x1, x3
 	b.eq	Lskip_cpu_reset_handler				// Not found
 	b		Lcheck_cpu_data_entry	// loop
-#endif
 Lfound_cpu_data_entry:
 
 #if defined(BCM2712)
-	BCM2712_UART_MARK 0x46					// F: selected the CPU-data slot
+	BCM2712_UART_MARK 0x46					// F: matched the physical CPU ID
 #endif
 
 #ifdef APPLEEVEREST
