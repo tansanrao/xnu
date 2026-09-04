@@ -560,6 +560,7 @@ flow_req_prepare_namespace(struct nx_flow_req *req)
 	}
 
 	if (flow_req_needs_ipsec_reservation(req)) {
+#if IPSEC
 		union sockaddr_in_4_6 *saddr = &req->nfr_saddr;
 		union sockaddr_in_4_6 *daddr = &req->nfr_daddr;
 		/*
@@ -579,6 +580,10 @@ flow_req_prepare_namespace(struct nx_flow_req *req)
 			goto fail;
 		}
 		req->nfr_ipsec_reservation = ipsec_token;
+#else
+		err = ENOTSUP;
+		goto fail;
+#endif
 	}
 
 	if (flow_req_needs_protons_reservation(req)) {
@@ -849,9 +854,11 @@ flow_req_cleanup(struct nx_flow_req *req)
 	    !(req->nfr_flags & NXFLOWREQF_EXT_PROTO_RSV)) {
 		protons_release(&req->nfr_proto_reservation);
 	}
+#if IPSEC
 	if (key_custom_ipsec_token_is_valid(req->nfr_ipsec_reservation)) {
 		key_release_custom_ipsec(&req->nfr_ipsec_reservation);
 	}
+#endif
 }
 
 #if SK_LOG

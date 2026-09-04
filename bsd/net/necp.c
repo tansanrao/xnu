@@ -13662,6 +13662,7 @@ necp_socket_get_effective_mtu(struct inpcb *inp, u_int32_t current_mtu)
 
 			if (tunnel_interface != NULL) {
 				u_int32_t direct_tunnel_mtu = tunnel_interface->if_mtu;
+#if IPSEC
 				u_int32_t delegate_tunnel_mtu = (tunnel_interface->if_delegated.ifp != NULL) ? tunnel_interface->if_delegated.ifp->if_mtu : 0;
 				const char ipsec_prefix[] = "ipsec";
 				if (delegate_tunnel_mtu != 0 &&
@@ -13683,6 +13684,9 @@ necp_socket_get_effective_mtu(struct inpcb *inp, u_int32_t current_mtu)
 					// For non-ipsec interfaces, just return the tunnel MTU
 					return direct_tunnel_mtu;
 				}
+#else
+				return direct_tunnel_mtu;
+#endif
 			}
 		}
 	}

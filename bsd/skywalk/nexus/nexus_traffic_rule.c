@@ -251,7 +251,7 @@ void
 retain_traffic_rule(struct nxctl_traffic_rule *ntr)
 {
 #if (DEVELOPMENT || DEBUG)
-	os_ref_count_t count = os_ref_get_count(&ntr->ntr_refcnt);
+	os_ref_count_t count __unused = os_ref_get_count(&ntr->ntr_refcnt);
 	DTRACE_SKYWALK2(ntr__retain, struct nxctl_traffic_rule *, ntr,
 	    os_ref_count_t, count);
 #endif
@@ -263,7 +263,7 @@ void
 release_traffic_rule(struct nxctl_traffic_rule *ntr)
 {
 #if (DEVELOPMENT || DEBUG)
-	os_ref_count_t count = os_ref_get_count(&ntr->ntr_refcnt);
+	os_ref_count_t count __unused = os_ref_get_count(&ntr->ntr_refcnt);
 	DTRACE_SKYWALK2(ntr__release, struct nxctl_traffic_rule *, ntr,
 	    os_ref_count_t, count);
 #endif

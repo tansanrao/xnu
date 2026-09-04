@@ -3463,9 +3463,11 @@ ifnet_get_keepalive_offload_frames(ifnet_t ifp,
 		bzero(frame, sizeof(struct ifnet_keepalive_offload_frame));
 	}
 
+#if IPSEC
 	/* First collect IPsec related keep-alive frames */
 	*used_frames_count = key_fill_offload_frames_for_savs(ifp,
 	    frames_array, frames_array_count, frame_data_offset);
+#endif
 
 	/* Keep-alive offload not required for TCP/UDP on CLAT interface */
 	if (IS_INTF_CLAT46(ifp)) {

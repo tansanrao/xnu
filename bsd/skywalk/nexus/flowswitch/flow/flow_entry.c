@@ -1177,9 +1177,11 @@ fe_free(struct flow_entry *fe)
 	}
 	fe->fe_proto_reservation = NULL;
 
+#if IPSEC
 	if (key_custom_ipsec_token_is_valid(fe->fe_ipsec_reservation)) {
 		key_release_custom_ipsec(&fe->fe_ipsec_reservation);
 	}
+#endif
 	fe->fe_ipsec_reservation = NULL;
 
 	if (!(fe->fe_flags & FLOWENTF_EXTRL_FLOWID) && (fe->fe_flowid != 0)) {

@@ -407,7 +407,11 @@ ifnet_needs_fsw_transport_netagent(ifnet_t ifp)
 	if (if_is_fsw_transport_netagent_enabled()) {
 		/* check if netagent has been manually enabled for ipsec/utun */
 		if (ifp->if_family == IFNET_FAMILY_IPSEC) {
+#if IPSEC
 			return ipsec_interface_needs_netagent(ifp);
+#else
+			return FALSE;
+#endif
 		} else if (ifp->if_family == IFNET_FAMILY_UTUN) {
 			return utun_interface_needs_netagent(ifp);
 		}

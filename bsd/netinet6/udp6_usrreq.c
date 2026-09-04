@@ -384,9 +384,9 @@ udp6_input(struct mbuf **mp, int *offp, int proto)
 		lck_rw_lock_shared(&pcbinfo->ipi_lock);
 
 		LIST_FOREACH(in6p, &udb, inp_list) {
-#if IPSEC
+#if IPSEC || NECP
 			int skipit;
-#endif /* IPSEC */
+#endif
 
 			if ((in6p->inp_vflag & INP_IPV6) == 0) {
 				continue;

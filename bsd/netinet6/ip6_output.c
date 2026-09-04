@@ -289,7 +289,9 @@ ip6_output_list(struct mbuf *m0, int packetchain, struct ip6_pktopts *opt,
 	struct in6_ifaddr *__single ia = NULL, *__single src_ia = NULL;
 	u_int32_t mtu = 0;
 	u_int32_t optlen = 0, plen = 0, unfragpartlen = 0;
+#if IPSEC
 	struct ip6_rthdr *__single rh;
+#endif
 	struct in6_addr finaldst;
 	ipfilter_t __single inject_filter_ref;
 	struct ipf_pktopts *__single ippo = NULL;
@@ -742,8 +744,10 @@ loopit:
 		printf("%s: Invalid policy found: %d\n", __func__, sp->policy);
 		break;
 	}
-skip_ipsec:
 #endif /* IPSEC */
+#if IPSEC || NECP
+skip_ipsec:
+#endif
 
 	/*
 	 * Calculate the total length of the extension header chain.
@@ -1631,7 +1635,9 @@ evaluateloop:
 		 * reused. Note this also clears the exthdrs.merged flag.
 		 */
 		bzero(&exthdrs, sizeof(exthdrs));
+#if IPSEC
 		bzero(&ipsec_state, sizeof(ipsec_state));
+#endif
 
 		/* Continue looping. */
 		goto loopit;

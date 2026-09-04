@@ -157,6 +157,7 @@ extern int esp_max_ivlen(void);
 extern int esp4_output(struct mbuf *, struct secasvar *);
 extern void esp4_input(struct mbuf *, int off);
 extern struct mbuf *esp4_input_extended(struct mbuf *, int off, ifnet_t interface);
+struct ipsecrequest;
 extern size_t esp_hdrsiz(struct ipsecrequest *);
 extern int esp_kpipe_output(struct secasvar *, kern_packet_t, kern_packet_t);
 extern int esp_kpipe_input(ifnet_t, kern_packet_t, kern_packet_t);

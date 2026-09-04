@@ -361,12 +361,14 @@ ether_inet_prmod_ioctl(ifnet_t ifp, protocol_family_t protocol_family,
 		 * Do this only for the first address of the interface
 		 * and not for aliases.
 		 */
+#if MACH_KDP
 		if ((kdp_get_interface() != 0 &&
 		    kdp_get_interface() == ifp->if_softc) ||
 		    (kdp_get_interface() == 0 && ifp->if_unit == 0)) {
 			kdp_set_ip_and_mac_addresses(&(IA_SIN(ifa)->sin_addr),
 			    (struct ether_addr *)IF_LLADDR(ifp));
 		}
+#endif
 		break;
 	}
 

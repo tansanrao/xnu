@@ -646,3 +646,7 @@ do_build_all:: do_all
 
 include $(MakeInc_rule)
 include $(MakeInc_dir)
+
+# Standalone networking crypto uses the same source-built provider as libkern.
+tcp_subr.o_INCFLAGS += -I${SRCROOT}/../bearssl/inc
+flow_divert.o_INCFLAGS += -I${SRCROOT}/../bearssl/inc

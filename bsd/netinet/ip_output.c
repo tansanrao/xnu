@@ -1604,8 +1604,10 @@ sendit:
 #endif
 		ipf_unref();
 	}
-skip_ipsec:
 #endif /* IPSEC */
+#if IPSEC || NECP
+skip_ipsec:
+#endif
 
 
 	/* 127/8 must not appear on wire - RFC1122 */

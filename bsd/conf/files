@@ -347,7 +347,7 @@ bsd/netkey/key_debug.c    		optional ipsec bound-checks
 bsd/netkey/keysock.c      		optional ipsec bound-checks
 bsd/netkey/keydb.c      		optional ipsec bound-checks
 
-bsd/net/multi_layer_pkt_log.c		optional inet inet ipsec ipsec_esp bound-checks
+bsd/net/multi_layer_pkt_log.c		optional inet bound-checks
 
 bsd/crypto/entropy/entropy_sysctl.c standard
 

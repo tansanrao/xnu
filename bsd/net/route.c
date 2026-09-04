@@ -2904,6 +2904,7 @@ rt_setgate(struct rtentry *rt, struct sockaddr *dst, struct sockaddr *gate)
 		 * was behaving in the past).  In future, it would be good
 		 * to do all this only when KDP is enabled.
 		 */
+#if MACH_KDP
 		if ((dst->sa_family == AF_INET) &&
 		    gwrt != NULL && gwrt->rt_gateway->sa_family == AF_LINK &&
 		    (gwrt->rt_ifp->if_index == get_primary_ifscope(AF_INET) ||
@@ -2911,6 +2912,7 @@ rt_setgate(struct rtentry *rt, struct sockaddr *dst, struct sockaddr *gate)
 			kdp_set_gateway_mac(SDL(gwrt->rt_gateway)->
 			    sdl_data);
 		}
+#endif
 
 		/* Release extra ref from rtalloc1() */
 		if (gwrt != NULL) {
