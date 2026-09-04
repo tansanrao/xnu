@@ -145,9 +145,10 @@ BCM2712CPU::startCPU(__unused vm_offset_t start_paddr,
 	UInt64 resetAddress = ml_vtophys(reset_vector_vaddr);
 	int64_t result = bcm2712_psci_cpu_on(physicalID, psciEntryAddress,
 	    resetAddress);
+	IOLog("BCM2712CPU: PSCI CPU_ON MPIDR 0x%x entry 0x%llx "
+	    "context 0x%llx returned %lld\n", physicalID, psciEntryAddress,
+	    resetAddress, result);
 	if (result != 0) {
-		IOLog("BCM2712CPU: PSCI CPU_ON for MPIDR 0x%x failed: %lld\n",
-		    physicalID, result);
 		return KERN_FAILURE;
 	}
 	return KERN_SUCCESS;
