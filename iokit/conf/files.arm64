@@ -10,3 +10,7 @@ iokit/Kernel/arm/BCM2711CPU.cpp					optional iokitcpp
 iokit/Kernel/arm/BCM2711InterruptController.cpp			optional iokitcpp
 iokit/Kernel/arm/BCM2711Serial.cpp				optional iokitcpp
 iokit/Kernel/arm/BCM2711InterruptTests.cpp			optional iokitcpp
+iokit/Kernel/arm/BCM2712PlatformExpert.cpp			optional iokitcpp
+iokit/Kernel/arm/BCM2712CPU.cpp					optional iokitcpp
+iokit/Kernel/arm/BCM2712InterruptController.cpp			optional iokitcpp
+iokit/Kernel/arm/BCM2712Serial.cpp				optional iokitcpp

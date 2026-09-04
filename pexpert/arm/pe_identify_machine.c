@@ -190,6 +190,8 @@ vm_offset_t     gSocPhys;
 
 #if defined(ARM64_BOARD_CONFIG_BCM2711)
 #include <arm64/bcm2711_interrupt.h>
+#elif defined(ARM64_BOARD_CONFIG_BCM2712)
+#include <arm64/bcm2712_interrupt.h>
 #endif
 
 static uint32_t
@@ -213,7 +215,7 @@ pe_arm_map_interrupt_controller(void)
 		SecureDTGetProperty(entryP, "reg", (void const **)&reg_prop, &prop_size);
 		gPicBase = ml_io_map(soc_phys + *reg_prop, *(reg_prop + 1));
 		kprintf("pe_arm_map_interrupt_controller: gPicBase: 0x%lx\n", (unsigned long)gPicBase);
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 		if (SecureDTGetProperty(entryP, "cpu-reg",
 		    (void const **)&reg_prop, &prop_size) == kSuccess) {
 			gPicCPUBase = ml_io_map(soc_phys + *reg_prop, *(reg_prop + 1));
@@ -225,9 +227,9 @@ pe_arm_map_interrupt_controller(void)
 		return 0;
 	}
 
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 	if (gPicCPUBase == 0) {
-		printf("BCM2711: failed to map the GIC CPU interface\n");
+		printf("Broadcom: failed to map the GIC CPU interface\n");
 		return 0;
 	}
 	return 1;
@@ -259,6 +261,8 @@ pe_arm_init_interrupts(void *args)
 		}
 #if defined(ARM64_BOARD_CONFIG_BCM2711)
 		bcm2711_gic_init(gPicBase, gPicCPUBase);
+#elif defined(ARM64_BOARD_CONFIG_BCM2712)
+		bcm2712_gic_init(gPicBase, gPicCPUBase);
 #endif
 	}
 

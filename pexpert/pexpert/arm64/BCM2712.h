@@ -1,7 +1,7 @@
 #ifndef _PEXPERT_ARM64_BCM2712_H
 #define _PEXPERT_ARM64_BCM2712_H
 
-/* Cortex-A76 baseline. Platform drivers and CPU startup are separate work. */
+/* Cortex-A76 baseline for the BCM2712 platform port. */
 #define NO_MONITOR 1
 #define NO_ECORE 1
 #define BCM2712 1

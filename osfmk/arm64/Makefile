@@ -47,6 +47,7 @@ INSTALL_SF_MD_LCL_LIST = \
 # Headers used to compile xnu
 EXPORT_MD_LIST = \
 	bcm2711_interrupt.h \
+	bcm2712_interrupt.h \
 	cpc_arm64.h \
 	hv_hvc.h \
 	lowglobals.h \

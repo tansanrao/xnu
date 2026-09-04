@@ -37,7 +37,7 @@
  * Defines the core type of the executing CPU.
  */
 __enum_closed_decl(arm64_core_type_t, unsigned int, {
-#if defined(BCM2711)
+#if defined(BCM2711) || defined(BCM2712)
 	E_CORE = 0,
 	M_CORE = 1,
 	P_CORE = 2,
@@ -57,7 +57,7 @@ static inline arm64_core_type_t
 arm64_core_type(void)
 {
 #ifdef __arm64__
-#if defined(BCM2711)
+#if defined(BCM2711) || defined(BCM2712)
 	return P_CORE;
 #else
 	return (arm64_core_type_t)((__builtin_arm_rsr64("MPIDR_EL1") >> MPIDR_CORETYPE_SHIFT) & MPIDR_CORETYPE_MASK);

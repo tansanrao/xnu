@@ -38,7 +38,7 @@
 #include <kern/thread.h>
 #include <console/serial_protos.h>
 #include <libkern/section_keywords.h>
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 #include <pexpert/arm/protos.h>
 #include <os/atomic_private.h>
 static _Atomic uint64_t serial_keyboard_polls;
@@ -77,7 +77,7 @@ serial_keyboard_init(void)
 		return;
 	}
 
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 	/* kminit starts input early; normal Mach startup calls here again. */
 	if (!os_atomic_cmpxchg(&serial_keyboard_started, false, true, relaxed)) {
 		return;
@@ -89,7 +89,7 @@ serial_keyboard_init(void)
 		panic("serial_keyboard_init");
 	}
 
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 	serial_keyboard_thread = thread; /* Permanent console thread, retained for diagnostics. */
 #else
 	thread_deallocate(thread);
@@ -109,7 +109,7 @@ serial_keyboard_poll(void)
 {
 	int chr;
 	uint64_t next;
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 	os_atomic_inc(&serial_keyboard_polls, relaxed);
 #endif
 
@@ -121,7 +121,7 @@ serial_keyboard_poll(void)
 		cons_cinput((char)chr); /* Buffer up the character */
 	}
 
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 	if (serial_rx_wait_prepare()) {
 		thread_block((thread_continue_t)serial_keyboard_poll);
 		__builtin_unreachable();

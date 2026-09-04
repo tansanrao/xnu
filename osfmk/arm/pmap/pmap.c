@@ -84,10 +84,10 @@
 
 #include <arm64/proc_reg.h>
 #include <pexpert/arm64/boot.h>
-#if !defined(BCM2711)
+#if !defined(BCM2711) && !defined(BCM2712)
 #include <arm64/ppl/sart.h>
 #endif
-#if !defined(BCM2711)
+#if !defined(BCM2711) && !defined(BCM2712)
 #include <arm64/ppl/uat.h>
 #else
 static inline void *ptep_get_iommu(__unused pt_entry_t *ptep) { return NULL; }
@@ -2341,7 +2341,7 @@ pmap_bootstrap(
 	/**
 	 * Bootstrap any necessary SART data structures and values needed from the device tree.
 	 */
-#if !defined(BCM2711)
+#if !defined(BCM2711) && !defined(BCM2712)
         sart_bootstrap();
 #endif
         /**
@@ -11063,7 +11063,7 @@ pmap_batch_set_cache_attributes_internal(
 				panic("%s: page is not managed; addr: 0x%016llx", __func__, paddr);
 			}
 
-#if defined(BCM2711)
+#if defined(BCM2711) || defined(BCM2712)
                         CleanPoC_DcacheRegion_Force(phystokv(paddr), PAGE_SIZE);
 #else
                         CleanPoC_DcacheRegion_Force_nopreempt_nohid(
@@ -12252,7 +12252,7 @@ MARK_AS_PMAP_TEXT __unused static inline void
 pmap_cs_lockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable) {
 #if XNU_MONITOR
 	pmap_ppl_lockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
-#elif defined(BCM2711)
+#elif defined(BCM2711) || defined(BCM2712)
 #pragma unused(kva, size, ppl_writable)
 #else
 	pmap_ppl_lockdown_pages(kva, size, 0, ppl_writable);
@@ -12263,7 +12263,7 @@ MARK_AS_PMAP_TEXT __unused static inline void
 pmap_cs_unlockdown_pages(vm_address_t kva, vm_size_t size, bool ppl_writable) {
 #if XNU_MONITOR
 	pmap_ppl_unlockdown_pages(kva, size, PVH_FLAG_LOCKDOWN_CS, ppl_writable);
-#elif defined(BCM2711)
+#elif defined(BCM2711) || defined(BCM2712)
 #pragma unused(kva, size, ppl_writable)
 #else
 	pmap_ppl_unlockdown_pages(kva, size, 0, ppl_writable);

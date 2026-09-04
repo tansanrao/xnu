@@ -54,7 +54,7 @@ kminit(void)
 	km_tty[0] = ttymalloc();
 	km_tty[0]->t_dev = makedev(12, 0);
 	initialized = 1;
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 	serial_keyboard_init();
 #endif
 }

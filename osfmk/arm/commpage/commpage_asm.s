@@ -275,7 +275,7 @@ _pfz_trylock_and_enqueue:
 	mov		w11, #1			 // locked value = w11 = 1
 
 	// Try to grab the lock
-#if defined(BCM2711)
+#if defined(BCM2711) || defined(BCM2712)
 1:	ldaxr	w10, [x3]
 	cbz	w10, 2f
 	clrex
@@ -337,7 +337,7 @@ _pfz_trylock_and_dequeue:
 	mov		w10, wzr		 // unlock value = w10 = 0
 	mov		w11, #1			 // locked value = w11 = 1
 
-#if defined(BCM2711)
+#if defined(BCM2711) || defined(BCM2712)
 1:	ldaxr	w10, [x2]
 	cbz	w10, 2f
 	clrex

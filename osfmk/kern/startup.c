@@ -200,8 +200,8 @@ extern void bsd_scale_setup(int);
 extern unsigned int semaphore_max;
 extern void stackshot_init(void);
 
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
-extern void bcm2711_wait_for_all_cpus(void);
+#if defined(ARM64_BOARD_CONFIG_BCM)
+extern void bcm_wait_for_all_cpus(void);
 #endif
 
 /*
@@ -921,8 +921,8 @@ kernel_bootstrap_thread(void)
 	kperf_init_early();
 #endif
 
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
-	bcm2711_wait_for_all_cpus();
+#if defined(ARM64_BOARD_CONFIG_BCM)
+	bcm_wait_for_all_cpus();
 #endif
 
 	/*

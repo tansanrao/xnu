@@ -251,7 +251,7 @@
 /* D-Cache. */
 #define MMU_CLINE   6
 
-#elif defined (BCM2711)
+#elif defined (BCM2711) || defined (BCM2712)
 
 /* Cortex-A72 L1 instruction and data cache lines are 64 bytes. */
 #define MMU_I_CLINE 6

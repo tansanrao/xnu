@@ -188,9 +188,9 @@ SECURITY_READ_ONLY_LATE(bool) serial_console_enabled = false;
 static SECURITY_READ_ONLY_LATE(bool) enable_sme = true;
 #endif
 
-#if APPLEVIRTUALPLATFORM || defined(ARM64_BOARD_CONFIG_BCM2711)
+#if APPLEVIRTUALPLATFORM || defined(ARM64_BOARD_CONFIG_BCM)
 SECURITY_READ_ONLY_LATE(vm_offset_t) reset_vector_vaddr = 0;
-#endif /* APPLEVIRTUALPLATFORM || ARM64_BOARD_CONFIG_BCM2711 */
+#endif /* APPLEVIRTUALPLATFORM || ARM64_BOARD_CONFIG_BCM */
 
 /*
  * Forward definition
@@ -364,9 +364,9 @@ arm_init(
 	const_boot_args = *args;
 	BootArgs = args = &const_boot_args;
 
-#if APPLEVIRTUALPLATFORM || defined(ARM64_BOARD_CONFIG_BCM2711)
+#if APPLEVIRTUALPLATFORM || defined(ARM64_BOARD_CONFIG_BCM)
 	reset_vector_vaddr = (vm_offset_t) &LowResetVectorBase;
-#endif /* APPLEVIRTUALPLATFORM || ARM64_BOARD_CONFIG_BCM2711 */
+#endif /* APPLEVIRTUALPLATFORM || ARM64_BOARD_CONFIG_BCM */
 
 	cpu_data_init(&BootCpuData);
 #if defined(HAS_APPLE_PAC)
@@ -425,7 +425,7 @@ arm_init(
 		/*
 		 * Select the advertised kernel page size.
 		 */
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 		PAGE_SHIFT_CONST = ARM_PGSHIFT;
 #else
 		if (args->memSize > 1ULL * 1024 * 1024 * 1024) {

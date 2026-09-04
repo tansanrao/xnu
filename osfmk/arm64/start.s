@@ -33,7 +33,7 @@
 #include <pexpert/arm64/board_config.h>
 #include <mach_assert.h>
 #include <machine/asm.h>
-#if defined(BCM2711)
+#if defined(BCM2711) || defined(BCM2712)
 .macro APPLY_TUNABLES midr, tmp1, tmp2
 .endmacro
 #else
@@ -148,7 +148,9 @@ LEXT(reset_vector)
 	adrp	x19, EXT(ResetHandlerData)@page			// Get address of the reset handler data
 	add		x19, x19, EXT(ResetHandlerData)@pageoff
 	mrs		x15, MPIDR_EL1						// Load MPIDR to get CPU number
-#if HAS_CLUSTER
+#if defined(BCM2712)
+	and		x0, x15, #0xFF00					// BCM2712 core number is in Affinity1
+#elif HAS_CLUSTER
 	and		x0, x15, #0xFFFF					// CPU number in Affinity0, cluster ID in Affinity1
 #else
 	and		x0, x15, #0xFF						// CPU number is in MPIDR Affinity Level 0

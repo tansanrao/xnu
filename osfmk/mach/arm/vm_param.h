@@ -76,7 +76,7 @@ extern int PAGE_SHIFT_CONST;
 
 /* Default userspace map granule; Apple arm64 products retain 16 KiB. */
 #if defined(__arm64__)
-#if defined(ARM64_BOARD_CONFIG_BCM2711)
+#if defined(ARM64_BOARD_CONFIG_BCM)
 #define ARM64_USER_PAGE_SHIFT   12
 #else
 #define ARM64_USER_PAGE_SHIFT   14
