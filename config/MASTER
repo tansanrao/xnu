@@ -335,6 +335,7 @@ options   CONFIG_PMAP_PPL			# <config_pmap_ppl>
 options   NOS_ARM_ASM			# <nos_arm_asm>
 options   NOS_ARM_PMAP			# <nos_arm_pmap>
 options   BCM2711_ARM           # <bcm2711_arm>
+options   BCM2712_ARM           # <bcm2712_arm>
 # support dynamic signing of code
 #
 options		CONFIG_DYNAMIC_CODE_SIGNING	# <dynamic_codesigning>

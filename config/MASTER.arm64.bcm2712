@@ -1,0 +1,39 @@
+#
+# BCM2712 standalone Darwin bring-up configuration (Raspberry Pi 5).
+#
+# Configuration scaffold only: the loader, ARM source selection, and platform
+# drivers still need BCM2712 support before this target can build and boot.
+# Keep the working BCM2711 runtime feature set, but use a distinct board option.
+# RAM size and firmware reservations belong in the loader's boot_args/device
+# tree, not in this configuration; the initial hardware target has 8 GiB RAM.
+#
+######################################################################
+#
+#  Standard configurations
+#
+######################################################################
+#
+#  ARM_EXTRAS_BASE = [ bcm2712_arm ]
+#  KERNEL_BASE =     [ arm64 bsmall msgb_small config_embedded config_requires_u32_munging ARM_EXTRAS_BASE ]
+#  KERNEL_RELEASE =  [ KERNEL_BASE release ]
+#  KERNEL_DEV =      [ KERNEL_BASE development mach_assert ]
+#  KERNEL_DEBUG =    [ KERNEL_BASE debug mach_assert ]
+#
+#  BSD_BASE =        [ mach_bsd psynch config_proc_uuid_policy NETWORK_BASE config_pthread_static ]
+#  NETWORK_BASE =    [ inet bpfilter if_bridge traffic_mgt dummynet pf flow_divert necp content_filter multipath mptcp skywalk config_nexus_user_pipe config_nexus_kernel_pipe config_nexus_flowswitch config_nexus_netif ]
+#  FILESYS_BASE =    [ devfs config_hfs_static ]
+#  IOKIT_BASE =      [ iokit iokitcpp no_kernel_hid ]
+#  LIBKERN_BASE =    [ libkerncpp config_blocks crypto_sha2 config_crypto_bearssl zlib ]
+#  MACH_BASE =       [ mach importance_inheritance config_atm config_coalitions config_iosched config_telemetry ]
+#  SCHED_BASE =      [ config_sched_timeshare_core config_sched_deferred_ast ]
+#  SECURITY_BASE =   [ config_macf config_no_amfi ]
+#  VM_BASE =         [ vm_pressure_events memorystatus ]
+#
+#  RELEASE =         [ KERNEL_RELEASE BSD_BASE FILESYS_BASE IOKIT_BASE LIBKERN_BASE MACH_BASE SCHED_BASE SECURITY_BASE VM_BASE ]
+#  DEVELOPMENT =     [ KERNEL_DEV     BSD_BASE FILESYS_BASE IOKIT_BASE LIBKERN_BASE MACH_BASE SCHED_BASE SECURITY_BASE VM_BASE ]
+#  DEBUG =           [ KERNEL_DEBUG   BSD_BASE FILESYS_BASE IOKIT_BASE LIBKERN_BASE MACH_BASE SCHED_BASE SECURITY_BASE VM_BASE ]
+#
+######################################################################
+
+machine         "arm64"                        # <arm64>
+makeoptions     OSFMK_MACHINE = "arm64"        # <mach>
