@@ -176,19 +176,35 @@ LEXT(reset_vector)
 #else
 	and		x0, x15, #0xFF						// CPU number is in MPIDR Affinity Level 0
 #endif
+#if defined(BCM2712)
+	/* This port executes the reset vector in place, so its PC-relative
+	 * address remains valid while the MMU is off. */
+	adrp	x1, EXT(CpuDataEntries)@page
+	add		x1, x1, EXT(CpuDataEntries)@pageoff
+#else
 	ldr		x1, [x19, CPU_DATA_ENTRIES]			// Load start of data entries
+#endif
 	add		x3, x1, MAX_CPUS * 16				// end addr of data entries = start + (16 * MAX_CPUS)
 Lcheck_cpu_data_entry:
 	ldr		x21, [x1, CPU_DATA_PADDR]			// Load physical CPU data address
 	cbz		x21, Lnext_cpu_data_entry
+#if defined(BCM2712)
+	BCM2712_UART_MARK 0x56					// V: found a populated CPU-data entry
+#endif
 	ldr		w2, [x21, CPU_PHYS_ID]				// Load ccc cpu phys id
 	cmp		x0, x2						// Compare cpu data phys cpu and MPIDR_EL1 phys cpu
 	b.eq	Lfound_cpu_data_entry				// Branch if match
 Lnext_cpu_data_entry:
 	add		x1, x1, #16					// Increment to the next cpu data entry
 	cmp		x1, x3
+#if defined(BCM2712)
+	b.ne	Lcheck_cpu_data_entry	// loop
+	BCM2712_UART_MARK 0x4E					// N: no physical CPU ID matched
+	b	Lskip_cpu_reset_handler				// Not found
+#else
 	b.eq	Lskip_cpu_reset_handler				// Not found
 	b		Lcheck_cpu_data_entry	// loop
+#endif
 Lfound_cpu_data_entry:
 
 #if defined(BCM2712)
