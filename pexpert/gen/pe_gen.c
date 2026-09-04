@@ -184,6 +184,17 @@ PE_get_random_seed(unsigned char *dst_random_seed, uint32_t request_size)
 	}
 #endif /* CONFIG_SPTM */
 
+#if defined(ARM64_BOARD_CONFIG_BCM2712)
+	DTEntry source_entry;
+	const void *source;
+	unsigned int source_size;
+	if (SecureDTLookupEntry(NULL, "/chosen", &source_entry) != kSuccess ||
+	    SecureDTGetProperty(source_entry, "entropy-source", &source, &source_size) != kSuccess ||
+	    source_size != sizeof("rng200") || memcmp(source, "rng200", sizeof("rng200"))) {
+		panic("BCM2712 requires an RNG200-seeded loader");
+	}
+#endif
+
 	if (random_seed == NULL || size == 0) {
 		panic("no random seed");
 	}

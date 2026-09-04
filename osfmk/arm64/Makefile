@@ -48,6 +48,7 @@ INSTALL_SF_MD_LCL_LIST = \
 EXPORT_MD_LIST = \
 	bcm2711_interrupt.h \
 	bcm2712_interrupt.h \
+	bcm2712_entropy.h \
 	cpc_arm64.h \
 	hv_hvc.h \
 	lowglobals.h \

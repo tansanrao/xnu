@@ -7150,3 +7150,16 @@ SCALABLE_COUNTER_DEFINE(mach_eventlink_handoff_success_count);
 SYSCTL_SCALABLE_COUNTER(_kern, mach_eventlink_handoff_success_count,
     mach_eventlink_handoff_success_count, "Number of successful handoffs");
 #endif /* DEBUG || DEVELOPMENT*/
+
+#if defined(ARM64_BOARD_CONFIG_BCM2712)
+#include <arm64/bcm2712_entropy.h>
+static int
+sysctl_bcm2712_entropy_batches(struct sysctl_oid *oidp, void *arg1, int arg2, struct sysctl_req *req)
+{
+    (void)arg1; (void)arg2;
+    uint64_t value = bcm2712_entropy_batches();
+    return sysctl_handle_quad(oidp, &value, 0, req);
+}
+SYSCTL_PROC(_kern, OID_AUTO, bcm2712_entropy_batches, CTLTYPE_QUAD | CTLFLAG_RD | CTLFLAG_LOCKED,
+    NULL, 0, sysctl_bcm2712_entropy_batches, "Q", "Healthy RNG200 batches supplied for kernel PRNG reseeding");
+#endif

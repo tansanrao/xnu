@@ -169,3 +169,5 @@ osfmk/kern/ecc_init.c		standard
 osfmk/kern/ecc_logging.c	optional config_ecc_logging
 
 osfmk/kern/memory_error_logging.c	standard
+
+osfmk/arm64/bcm2712_entropy.c	optional bcm2712_arm

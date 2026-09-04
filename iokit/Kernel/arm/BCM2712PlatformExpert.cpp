@@ -6,6 +6,7 @@
 #if defined(ARM64_BOARD_CONFIG_BCM2712)
 
 #include <arm64/bcm2712_interrupt.h>
+#include <arm64/bcm2712_entropy.h>
 
 #define super IODTPlatformExpert
 
@@ -28,6 +29,7 @@ BCM2712PlatformExpert::start(IOService *provider)
 {
 	bool result = super::start(provider);
 	if (result) {
+		bcm2712_entropy_start();
 		const unsigned int max_cpus = ml_get_max_cpu_number() + 1;
 		ml_set_max_cpus(max_cpus);
 	}
