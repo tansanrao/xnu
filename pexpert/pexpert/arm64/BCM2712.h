@@ -9,6 +9,9 @@
 #define __ARM_ARCH__ 8
 #define __ARM_VMSA__ 8
 #define __ARM_VFP__ 4
+/* Cortex-A76 sets PAN on EL1 exception entry with XNU's SCTLR.SPAN=0.
+ * Use XNU's existing copyio guards to access user memory deliberately. */
+#define __ARM_PAN_AVAILABLE__ 1
 #define __ARM_COHERENT_CACHE__ 1
 /* Do not define __ARM_COHERENT_IO__: an MMU-off Cortex-A76 secondary
  * cannot observe dirty cache lines. XNU's cache-maintenance calls must
