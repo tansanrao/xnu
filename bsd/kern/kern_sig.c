@@ -859,9 +859,14 @@ sigpending(__unused proc_t p, struct sigpending_args *uap, __unused int32_t *ret
  */
 
 static int
-sigcontinue(__unused int error)
+sigcontinue(int error)
 {
-//	struct uthread *ut = current_uthread();
+	/* stop() wakes the parent before posting SIGCHLD. A plain event wakeup
+	 * must not return to user space with the sigsuspend mask still active. */
+	while (error == 0) {
+		error = tsleep0((caddr_t)current_proc(), PPAUSE | PCATCH,
+		    "pause", 0, sigcontinue);
+	}
 	unix_syscall_return(EINTR);
 }
 
@@ -889,7 +894,10 @@ sigsuspend_nocancel(proc_t p, struct sigsuspend_nocancel_args *uap, __unused int
 	ut->uu_oldmask = ut->uu_sigmask;
 	ut->uu_flag |= UT_SAS_OLDMASK;
 	ut->uu_sigmask = (uap->mask & ~sigcantmask);
-	(void) tsleep0((caddr_t) p, PPAUSE | PCATCH, "pause", 0, sigcontinue);
+	int error;
+	do {
+		error = tsleep0((caddr_t)p, PPAUSE | PCATCH, "pause", 0, sigcontinue);
+	} while (error == 0);
 	/* always return EINTR rather than ERESTART... */
 	return EINTR;
 }

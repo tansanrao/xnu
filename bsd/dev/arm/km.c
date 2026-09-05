@@ -195,12 +195,17 @@ kmioctl(dev_t dev, u_long cmd, caddr_t data, int flag, proc_t p)
 		break;
 
 	case TIOCSWINSZ:
+#if defined(ARM64_BOARD_CONFIG_BCM)
+		/* The serial terminal emulator supplies the window dimensions. */
+		goto fallthrough;
+#else
 		/*
 		 * Prevent changing of console size -- this ensures that
 		 * login doesn't revert to the termcap-defined size
 		 */
 		error = EINVAL;
 		break;
+#endif
 
 	/* Bodge in the CLOCAL flag as the km device is always local */
 	case TIOCSETA_32:
